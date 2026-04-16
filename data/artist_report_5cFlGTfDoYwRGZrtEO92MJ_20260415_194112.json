@@ -1,0 +1,1293 @@
+{
+  "artist_id": "5cFlGTfDoYwRGZrtEO92MJ",
+  "overview": {
+    "id": "5cFlGTfDoYwRGZrtEO92MJ",
+    "name": "Samuel Messias",
+    "monthly_listeners": 2458830,
+    "followers": 804323,
+    "world_rank": 0,
+    "top_cities": [
+      {
+        "city": "São Paulo",
+        "country": "BR",
+        "region": "SP",
+        "listeners": 380688
+      },
+      {
+        "city": "Rio de Janeiro",
+        "country": "BR",
+        "region": "RJ",
+        "listeners": 171715
+      },
+      {
+        "city": "Belo Horizonte",
+        "country": "BR",
+        "region": "MG",
+        "listeners": 117093
+      },
+      {
+        "city": "Brasília",
+        "country": "BR",
+        "region": "DF",
+        "listeners": 101862
+      },
+      {
+        "city": "Campinas",
+        "country": "BR",
+        "region": "SP",
+        "listeners": 94407
+      }
+    ],
+    "biography": "O carioca SAMUEL MESSIAS é uma das maiores revelações da música gospel brasileira nos últimos quatro anos, com vários hits e presença constante nos charts nos apps de música. Só para ilustrar, o clipe oficial em português do seu maior hit, “Todavia Me Alegrarei”, ultrapassou 300 milhões de views no YouTube e incontáveis covers (em diversos idiomas)... E depois de ficar 2 anos sem lançar um projeto inédito solo (fez muitas participações), finalmente nos presenteia com novas canções!",
+    "popularity": null,
+    "source": "graphql"
+  },
+  "discography": {
+    "id": "5cFlGTfDoYwRGZrtEO92MJ",
+    "name": "",
+    "releases": [
+      {
+        "id": "5iwjsJrzMxtmDTc1pBPyUN",
+        "name": "Meu Provedor (Ao Vivo)",
+        "type": "single",
+        "release_date": "2025-10-07T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02a4a5902f816b796c14a12c88",
+        "artists": []
+      },
+      {
+        "id": "4EO1KlcmvHxJGG37PzYmDw",
+        "name": "Prioridade (Ao Vivo)",
+        "type": "single",
+        "release_date": "2025-08-27T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e029c09aae1b3d85f346cb0a7b2",
+        "artists": []
+      },
+      {
+        "id": "1FYY6MlQ0LmGY7aO8JEpG3",
+        "name": "Ainda Tem Promessa (Ao Vivo)",
+        "type": "album",
+        "release_date": "2025-05-27T00:00:00Z",
+        "total_tracks": 8,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02b2f3575f4c721c75cb49fd73",
+        "artists": []
+      },
+      {
+        "id": "6QgqDaSUxBnOkSa3U4xk0D",
+        "name": "Ainda Tem Promessa (Playback)",
+        "type": "album",
+        "release_date": "2025-05-26T00:00:00Z",
+        "total_tracks": 8,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0294b3108092a58fc77e2ea400",
+        "artists": []
+      },
+      {
+        "id": "4rw2jXf4iEB18NyCKZCrHj",
+        "name": "Jeová Jireh (Ao Vivo)",
+        "type": "single",
+        "release_date": "2025-04-25T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02c258e121143053c358ff1148",
+        "artists": []
+      },
+      {
+        "id": "3prCKrW8PxGyXuI9r9gQNF",
+        "name": "Jeová Jireh (Playback)",
+        "type": "single",
+        "release_date": "2025-04-24T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e028e89e743e61621837fc1d649",
+        "artists": []
+      },
+      {
+        "id": "6xoS6aTYderRzYuW7TPVH5",
+        "name": "O Espírito de Deus se Move (Ao Vivo)",
+        "type": "single",
+        "release_date": "2025-03-18T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e024bfe3d26e9141bd9fd84e702",
+        "artists": []
+      },
+      {
+        "id": "7aeGx7wjAL2KXC42n6wy11",
+        "name": "O Espírito de Deus se Move (Playback)",
+        "type": "single",
+        "release_date": "2025-03-17T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0263874dfbaee63e88465e9f7a",
+        "artists": []
+      },
+      {
+        "id": "4B6HC3u9cwDlCHXrG8BUFQ",
+        "name": "Nada Poderá Me Separar (Ao Vivo)",
+        "type": "single",
+        "release_date": "2025-01-24T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e025b38c5e8dbb0d58532290053",
+        "artists": []
+      },
+      {
+        "id": "6onAzxBpf9Wz0rdU6ORoQj",
+        "name": "Nada Poderá Me Separar (Playback)",
+        "type": "single",
+        "release_date": "2025-01-23T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0255cd21445fe64dc2bb7d4837",
+        "artists": []
+      },
+      {
+        "id": "3VjFGuU0dFY5viuPbMmd1C",
+        "name": "Não Falhará (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-12-10T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e020bd59982215a21a74d630700",
+        "artists": []
+      },
+      {
+        "id": "2o5ZfXUVxKunM6ZvdqCYxb",
+        "name": "Não Falhará (Playback)",
+        "type": "single",
+        "release_date": "2024-12-09T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02a86840a4f402385c9d220abb",
+        "artists": []
+      },
+      {
+        "id": "45m5xlE9qe9PfV9fOlVkpo",
+        "name": "Sou Teu Pai (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-11-25T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02422d7d99dfa3a3492bf88c85",
+        "artists": []
+      },
+      {
+        "id": "2ZcBftGYZh4v5munER2GNj",
+        "name": "Teu Esconderijo (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-10-18T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e029b4c445b473cb6fbb45aaa8f",
+        "artists": []
+      },
+      {
+        "id": "7MG91P0s1SVpvsLfRf32As",
+        "name": "Teu Esconderijo (Playback)",
+        "type": "single",
+        "release_date": "2024-10-17T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02c5d799682e959f9cdc096b79",
+        "artists": []
+      },
+      {
+        "id": "6lNYVOSZ5ilMHzCrhpyXFI",
+        "name": "Maranata (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-09-10T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02c5e5344395a26ab37ac4de64",
+        "artists": []
+      },
+      {
+        "id": "6LaPrEBy0J6uIp6ZFtS9rs",
+        "name": "Maranata (Playback)",
+        "type": "single",
+        "release_date": "2024-09-09T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0210d98a8d6fca6c0fdecd6648",
+        "artists": []
+      },
+      {
+        "id": "1ZcC6cU12wzi4LP2VsEUL3",
+        "name": "De Manhã (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-08-20T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02e9df3f445ab97a2a1914e446",
+        "artists": []
+      },
+      {
+        "id": "1VcoQzbEkRobO2YUvol2HK",
+        "name": "A Glória Desta Última Casa (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-07-16T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02ee63ebc487865a270998fd84",
+        "artists": []
+      },
+      {
+        "id": "5WnHySIHE4f9yoYTrUx5CY",
+        "name": "A Glória Desta Última Casa (Playback)",
+        "type": "single",
+        "release_date": "2024-07-15T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02928ace158cc2ce13326287cb",
+        "artists": []
+      },
+      {
+        "id": "24VFrtxZuyTSl6RiF9C705",
+        "name": "Minha Herança (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-05-13T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0231e4a859080c09bc385557a1",
+        "artists": []
+      },
+      {
+        "id": "5Xila3x6XcBtG0wPZhFIo7",
+        "name": "Vem de Deus (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-05-03T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e028226e97d1a366cfbb89bb7b6",
+        "artists": []
+      },
+      {
+        "id": "7geG63BdCpln7c2JcpFrKI",
+        "name": "Louve (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-04-24T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02b6eabbd5de4dedf6a82d2a2b",
+        "artists": []
+      },
+      {
+        "id": "3SGzw0rSc8jENz6cioARTA",
+        "name": "Fui Comprado (Na Igreja - Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-04-23T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02d3f55081daeac466ac5c9cbb",
+        "artists": []
+      },
+      {
+        "id": "2mPs2ilWv62bh9uDM9WHrn",
+        "name": "Fui Comprado (Playback)",
+        "type": "single",
+        "release_date": "2024-04-22T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e027cc27a74df29a227d86a0a90",
+        "artists": []
+      },
+      {
+        "id": "0hQ9wZqMqLmKordqf0CLRL",
+        "name": "Samuel Messias - Louvorzão 2023 (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-04-10T00:00:00Z",
+        "total_tracks": 3,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e028570f882dabb8f45c7821f3c",
+        "artists": []
+      },
+      {
+        "id": "6e8fZa58zFpM0t2q0RGYJF",
+        "name": "No Meio de Nós (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-03-05T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02b01dc1aaad67c46166ef21e6",
+        "artists": []
+      },
+      {
+        "id": "693dtVneeG3AhmUjFcYudN",
+        "name": "Digno (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-01-30T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0234843eff4f07d6c6a1a95c3c",
+        "artists": []
+      },
+      {
+        "id": "5yXaZgrglJvCmLBAE0OiMJ",
+        "name": "Os Planos de Deus (Ao Vivo)",
+        "type": "single",
+        "release_date": "2024-01-04T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0217f08608f5a6870e005e93e2",
+        "artists": []
+      },
+      {
+        "id": "3hdQTBZW3hS5dNFrG822kf",
+        "name": "Jehová Jireh",
+        "type": "single",
+        "release_date": "2023-12-06T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02be686eecb27fea3bd273c474",
+        "artists": []
+      },
+      {
+        "id": "0sgXESiCbhH4VChMYA3DYb",
+        "name": "Jehová Jireh (Playback)",
+        "type": "single",
+        "release_date": "2023-12-05T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02ab71ed85113d0b3e3e5ed5f6",
+        "artists": []
+      },
+      {
+        "id": "3MT5kzpvVPsjl1OzmdK1Ur",
+        "name": "Em Teu Nome Há Poder (Ao Vivo)",
+        "type": "single",
+        "release_date": "2023-11-17T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0283e9c02bbdcad389b378d718",
+        "artists": []
+      },
+      {
+        "id": "619OqlqJ59fsZde9KAUUmG",
+        "name": "A Cura do Céu",
+        "type": "single",
+        "release_date": "2023-08-25T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0226af8b46fafa4d09c5e8f96a",
+        "artists": []
+      },
+      {
+        "id": "215390UVjAVAyE4lvv5aWM",
+        "name": "A Glória é Tua (Amazon Music Original)",
+        "type": "single",
+        "release_date": "2023-07-18T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e028cbbc941791c125224a83d5f",
+        "artists": []
+      },
+      {
+        "id": "7EIBjPV7PeB6uobPzh2Fb8",
+        "name": "Todavía Me Alegraré",
+        "type": "single",
+        "release_date": "2023-06-29T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e023b4b070404eb91b0dfb75505",
+        "artists": []
+      },
+      {
+        "id": "17L28LgflPyVnKECcTXtcp",
+        "name": "Todavía Me Alegraré (Playback)",
+        "type": "single",
+        "release_date": "2023-06-28T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e022411e8a345553ed85c2e5142",
+        "artists": []
+      },
+      {
+        "id": "1Bwm8ohhOXydeC9xEkQNLx",
+        "name": "A mão de Deus (Ao Vivo)",
+        "type": "single",
+        "release_date": "2023-06-23T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e025bb213194462a07d5fc21485",
+        "artists": []
+      },
+      {
+        "id": "1KUWEpW2R8syhvrtMswME6",
+        "name": "Fidelidade",
+        "type": "single",
+        "release_date": "2023-06-06T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02ed07858afc4cb111e8942787",
+        "artists": []
+      },
+      {
+        "id": "42UFCLpK8mS9SA5jCyDlYl",
+        "name": "Olha o Que Deus Faz (Ao Vivo)",
+        "type": "single",
+        "release_date": "2023-01-09T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e024b9c0c0e41c939b6bfb687c3",
+        "artists": []
+      },
+      {
+        "id": "1IhgLGx1Ms6t232HEWVaHf",
+        "name": "No Secreto",
+        "type": "single",
+        "release_date": "2022-11-22T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02946ea75a7e3db1e7349b6ed7",
+        "artists": []
+      },
+      {
+        "id": "2kZobkAnThlFMb4zTVEeJt",
+        "name": "Provisão",
+        "type": "single",
+        "release_date": "2022-10-07T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0210f876e383d2e64c04d14d1d",
+        "artists": []
+      },
+      {
+        "id": "1vjbN8mAde11avwCC977F9",
+        "name": "Volte a Ter Fé (Ao Vivo)",
+        "type": "ep",
+        "release_date": "2022-07-19T00:00:00Z",
+        "total_tracks": 5,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e027b5f48f5b41905030cf3adea",
+        "artists": []
+      },
+      {
+        "id": "6Bm010xs1prbkP2bVbKPFj",
+        "name": "Promessas (Promises) [Ao Vivo]",
+        "type": "single",
+        "release_date": "2022-06-09T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e023e10e29aa49d8b9281dd0a52",
+        "artists": []
+      },
+      {
+        "id": "4hmoxjfFLeugjFi7NavOgo",
+        "name": "Os Planos de Deus (Ao Vivo)",
+        "type": "single",
+        "release_date": "2022-05-20T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02a8b4732c66a3c90a8c933028",
+        "artists": []
+      },
+      {
+        "id": "0NAF4C3BVrDEHe6Kx7CcvQ",
+        "name": "Gerado no Altar (Ao Vivo)",
+        "type": "single",
+        "release_date": "2022-02-21T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02ee216ffc94d746a4a0f6a909",
+        "artists": []
+      },
+      {
+        "id": "5krQc3WjA9sFkaWqrd5Qur",
+        "name": "A Promessa Está de Pé (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-11-23T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02fcf16abadb8bf48cc913a968",
+        "artists": []
+      },
+      {
+        "id": "5UxErivDsLS4kf0vaTcmtO",
+        "name": "Eu Não Perdi o Controle (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-08-24T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02fb534835fe11d14e3ed9609f",
+        "artists": []
+      },
+      {
+        "id": "0eEsFlko4YwJ66frPrnVGz",
+        "name": "Todavia Me Alegrarei (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-07-16T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e027a521120043574ddcdde76a0",
+        "artists": []
+      },
+      {
+        "id": "5GfLh7idgci3OuPHbG0Yvf",
+        "name": "Samuel Messias (Ao Vivo)",
+        "type": "album",
+        "release_date": "2021-04-08T00:00:00Z",
+        "total_tracks": 13,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e025e19b2ecbabc6c82b8b43cdd",
+        "artists": []
+      },
+      {
+        "id": "4loh5hBSxZuf9BNzydsCDr",
+        "name": "Os Planos de Deus (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-03-31T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02410c82ab671ad2147b5b6651",
+        "artists": []
+      },
+      {
+        "id": "4HqtmfeSxFPMiNmwxg4mo3",
+        "name": "Vou Vencer Esse Gigante (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-03-24T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02693196bf22ea02b5daf9556d",
+        "artists": []
+      },
+      {
+        "id": "0SMZztSf8TMvtz9Y9qN6qr",
+        "name": "Abraão (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-03-17T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02288eb5947036aa9866d9e415",
+        "artists": []
+      },
+      {
+        "id": "6HFBtO4CcWTPt5fUlgmz6b",
+        "name": "Alegria Vem (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-03-10T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02a5afc165f965091cd87849a3",
+        "artists": []
+      },
+      {
+        "id": "6x6TxuBxUQgYcTYBj9emhQ",
+        "name": "Todavia Me Alegrarei (Ao Vivo)",
+        "type": "single",
+        "release_date": "2021-03-05T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e026a227810911c29310d02d2f9",
+        "artists": []
+      },
+      {
+        "id": "6TtTqrCRMPuSOpVUDlNSeX",
+        "name": "Samuel Messias (Ao Vivo)",
+        "type": "ep",
+        "release_date": "2020-06-15T00:00:00Z",
+        "total_tracks": 4,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e022c4bf4c33403aec132a58f88",
+        "artists": []
+      },
+      {
+        "id": "5L5DjxI9s4uN2OSzixS8dR",
+        "name": "Vou Vencer Esse Gigante (Ao Vivo)",
+        "type": "single",
+        "release_date": "2020-04-30T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e028d223604531bbb62661cecfe",
+        "artists": []
+      },
+      {
+        "id": "6D3ss2jwEkxMQ1jBwCnaG5",
+        "name": "Aqui o Mal Não Vai Entrar",
+        "type": "single",
+        "release_date": "2020-04-06T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e0293f5e4212ddc4e308f7277f1",
+        "artists": []
+      },
+      {
+        "id": "6vMnVYHX7jnCJWWoGlPhiE",
+        "name": "Aqui o Mal Não Vai Entrar (Playback)",
+        "type": "single",
+        "release_date": "2020-04-05T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e024bf7adc5d5e1a149ca817be4",
+        "artists": []
+      },
+      {
+        "id": "43JgTgcJ0OZP4Em9ZlkFYs",
+        "name": "Você Não Vai Parar (Ao Vivo)",
+        "type": "single",
+        "release_date": "2020-03-27T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e021cbbcbbd065ce0c1bc8905a4",
+        "artists": []
+      },
+      {
+        "id": "68e0rksjg4PUr3Ywf8Rw5z",
+        "name": "Alegria Vem (Ao Vivo)",
+        "type": "single",
+        "release_date": "2020-01-23T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02bf0b82a077035f2b5045b0b0",
+        "artists": []
+      },
+      {
+        "id": "3ZsN5E6fdhUFNqqIPf9FYT",
+        "name": "Todavia Me Alegrarei (Ao Vivo)",
+        "type": "single",
+        "release_date": "2019-12-19T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e023d3498ded9407978b87436ac",
+        "artists": []
+      },
+      {
+        "id": "2HPXxngcKMkkSmlCDc9Mvu",
+        "name": "Planos de Deus",
+        "type": "album",
+        "release_date": "2019-07-16T00:00:00Z",
+        "total_tracks": 12,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02330a190baa11a3988d81efd4",
+        "artists": []
+      },
+      {
+        "id": "5fUfxaQ52E5Tpk9lBiZzwW",
+        "name": "Teu Amanhã Será Melhor que Hoje (Playback)",
+        "type": "single",
+        "release_date": "2019-03-16T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02284b35a3bb4b2b8c1c47c426",
+        "artists": []
+      },
+      {
+        "id": "30N19K5qq6R32tebVEsvfh",
+        "name": "Teu Amanhã Será Melhor que Hoje",
+        "type": "single",
+        "release_date": "2019-03-15T00:00:00Z",
+        "total_tracks": 1,
+        "cover_url": "https://i.scdn.co/image/ab67616d00001e02411550299fe7b68bcdeaef94",
+        "artists": []
+      }
+    ],
+    "total_count": 64,
+    "source": "graphql"
+  },
+  "discovered_on": {
+    "id": "5cFlGTfDoYwRGZrtEO92MJ",
+    "name": "Samuel Messias",
+    "playlists": [
+      {
+        "id": "30eqrwAdj5vxvE6faMBqIm",
+        "uri": "spotify:playlist:30eqrwAdj5vxvE6faMBqIm",
+        "name": "GOSPEL 2026 ⭐ MAIS TOCADAS",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da843e9e724ab1a1f5832ada17b8",
+        "owner": {
+          "id": "",
+          "name": "Youze.Music"
+        }
+      },
+      {
+        "id": "37i9dQZF1DX0OEZC3cbQmU",
+        "uri": "spotify:playlist:37i9dQZF1DX0OEZC3cbQmU",
+        "name": "Sucessos Gospel",
+        "image_url": "https://i.scdn.co/image/ab67706f00000002c2b7f890eb5c8614260164bb",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "5Cx33erxIpGfHHoPYpmbnb",
+        "uri": "spotify:playlist:5Cx33erxIpGfHHoPYpmbnb",
+        "name": "GOSPEL 2026 ATUALIZADO | MAIS TOCADAS ⭐️ LOUVORES E HINOS",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da845933d4fecc9c4b6d246b8fec",
+        "owner": {
+          "id": "",
+          "name": "Michele Santos"
+        }
+      },
+      {
+        "id": "37i9dQZF1DX3iXpjyhBzel",
+        "uri": "spotify:playlist:37i9dQZF1DX3iXpjyhBzel",
+        "name": "Louvor & Adoração",
+        "image_url": "https://i.scdn.co/image/ab67706f00000002ac8bdeecf2c20224dfaf5607",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "37i9dQZF1DWSJ46qEtHsHf",
+        "uri": "spotify:playlist:37i9dQZF1DWSJ46qEtHsHf",
+        "name": "O Melhor de Sucessos Gospel 2025",
+        "image_url": "https://i.scdn.co/image/ab67706f00000002ab280c70a905ca2263718d50",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "6wMLsJBwVn19mscG4RzLJ5",
+        "uri": "spotify:playlist:6wMLsJBwVn19mscG4RzLJ5",
+        "name": "GOSPEL 2026 MAIS CONHECIDAS 🙌🏼 - AS MELHORES",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84df30804a62c64e3c84909b32",
+        "owner": {
+          "id": "",
+          "name": "Imagine"
+        }
+      },
+      {
+        "id": "0spwGkoeJhASw69mw14z8W",
+        "uri": "spotify:playlist:0spwGkoeJhASw69mw14z8W",
+        "name": "Louvores 2026 - Atualizado",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84bd80011a39aaf70a87e9e372",
+        "owner": {
+          "id": "",
+          "name": "Salt Music"
+        }
+      },
+      {
+        "id": "37i9dQZF1DWTvrPFPIwgwG",
+        "uri": "spotify:playlist:37i9dQZF1DWTvrPFPIwgwG",
+        "name": "Louvores Pentecostais",
+        "image_url": "https://i.scdn.co/image/ab67706f00000002ccfcf6d3654703e72de31757",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "3qiQNZCD90vLcH4qKK27g4",
+        "uri": "spotify:playlist:3qiQNZCD90vLcH4qKK27g4",
+        "name": "SAMUEL MESSIAS | As Melhores e Mais Tocadas do Gospel",
+        "image_url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c50375ba3af25b5ca9bee38d8",
+        "owner": {
+          "id": "",
+          "name": "BRASAS"
+        }
+      },
+      {
+        "id": "37i9dQZF1DWTpqftD7aloH",
+        "uri": "spotify:playlist:37i9dQZF1DWTpqftD7aloH",
+        "name": "Louvando no Trânsito",
+        "image_url": "https://i.scdn.co/image/ab67706f0000000297db8cfd585c1fd4ab5b5bca",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "0yrFMuoA8SZzHGoGGoUYj8",
+        "uri": "spotify:playlist:0yrFMuoA8SZzHGoGGoUYj8",
+        "name": "GOSPEL 2026  🙏 ATUALIZADO | AS MELHORES CANÇÕES",
+        "image_url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000da84c2d4f8aed576861265d33dcc",
+        "owner": {
+          "id": "",
+          "name": "Altar Music"
+        }
+      },
+      {
+        "id": "51XB4zDgziEKWe4X1F9sZ2",
+        "uri": "spotify:playlist:51XB4zDgziEKWe4X1F9sZ2",
+        "name": "LOUVORES - OS 50 MAIS OUVIDOS ",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84540cf4c101bc51f0ca011b58",
+        "owner": {
+          "id": "",
+          "name": "UPMÚSICA"
+        }
+      },
+      {
+        "id": "5vPYOTxwUm2CBuffXzGFCL",
+        "uri": "spotify:playlist:5vPYOTxwUm2CBuffXzGFCL",
+        "name": "ADORAÇÃO 2026 🇧🇷🔥 SUCESSOS E CLÁSSICOS GOSPEL ",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84039f095607fc1f2b9dccbb24",
+        "owner": {
+          "id": "",
+          "name": "Gabriel Moreira"
+        }
+      },
+      {
+        "id": "7gdConEMBNMfgw7X1uRjHC",
+        "uri": "spotify:playlist:7gdConEMBNMfgw7X1uRjHC",
+        "name": "GOSPEL 2026  🙏🏻 ATUALIZADO | AS MELHORES CANÇÕES E LOUVORES 🌟",
+        "image_url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c92f8492c998eeac27d568866",
+        "owner": {
+          "id": "",
+          "name": "playzone"
+        }
+      },
+      {
+        "id": "3Ake3B2wNKnTo4k9PhLRzL",
+        "uri": "spotify:playlist:3Ake3B2wNKnTo4k9PhLRzL",
+        "name": "FERNANDINHO 20 ANOS (as melhores) e AS MAIS TOCADAS GOSPEL",
+        "image_url": "https://mosaic.scdn.co/640/ab67616d00001e024097a393577a16ee59ac9e03ab67616d00001e02625dea163e6e2ef6e7e76fefab67616d00001e02840d8e0f9b1440af82acfb43ab67616d00001e028454efeb1483e89a537082b4",
+        "owner": {
+          "id": "",
+          "name": "Jonasbaprates Big Ones"
+        }
+      },
+      {
+        "id": "7HBJQHT2cRXEtCs3tBrqX1",
+        "uri": "spotify:playlist:7HBJQHT2cRXEtCs3tBrqX1",
+        "name": "Gospel que todo mundo conhece! (Sucessos Gospel 2010-2026)",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c45f4c76b3e2e4d4166d77f6a",
+        "owner": {
+          "id": "",
+          "name": "Bolt"
+        }
+      },
+      {
+        "id": "37i9dQZF1DXb844dSuHvcD",
+        "uri": "spotify:playlist:37i9dQZF1DXb844dSuHvcD",
+        "name": "A Cor da Benção",
+        "image_url": "https://i.scdn.co/image/ab67706f00000002780a73bcc2360546ab3b8fed",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "0xMD29VgJ9tAvToBlTsU0G",
+        "uri": "spotify:playlist:0xMD29VgJ9tAvToBlTsU0G",
+        "name": "Eu vou viver a totalidade da promessa, o Deus de obras completas",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84a1b1efb8c0f425cbb19855eb",
+        "owner": {
+          "id": "",
+          "name": "MP3 Gospel"
+        }
+      },
+      {
+        "id": "6eGQ72CRfYAq573puCOm0y",
+        "uri": "spotify:playlist:6eGQ72CRfYAq573puCOm0y",
+        "name": "Me Ama - Tem ciúmes de mim, o seu amor é como um furacão ",
+        "image_url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c45de5a7e30d5a380af577d9d",
+        "owner": {
+          "id": "",
+          "name": "mi"
+        }
+      },
+      {
+        "id": "734AGWQDBlDD108ITtbN9s",
+        "uri": "spotify:playlist:734AGWQDBlDD108ITtbN9s",
+        "name": "Santo Pra Sempre - Fernandinho | E os anjos clamam, Santo, toda a criação Santo",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c92c990ff458ea4046a68695e",
+        "owner": {
+          "id": "",
+          "name": "MP3 Gospel"
+        }
+      },
+      {
+        "id": "7qLWHCM9TwRXDYM0ihDaG2",
+        "uri": "spotify:playlist:7qLWHCM9TwRXDYM0ihDaG2",
+        "name": "Pois eu sirvo um Deus que é tão grande, em apenas um instante, faz o impossível",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cfe2bf5f0d45a92318535b145",
+        "owner": {
+          "id": "",
+          "name": "mi"
+        }
+      },
+      {
+        "id": "4XbLXyJvxVOWRuNt3HUK2r",
+        "uri": "spotify:playlist:4XbLXyJvxVOWRuNt3HUK2r",
+        "name": "FELIPE RODRIGUES | As Melhores e Mais Tocadas do Gospel",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cd9009f07d8d616d4affe7616",
+        "owner": {
+          "id": "",
+          "name": "BRASAS"
+        }
+      },
+      {
+        "id": "6EuCqK8TylyKvZaxSZRdFE",
+        "uri": "spotify:playlist:6EuCqK8TylyKvZaxSZRdFE",
+        "name": "Sublime - Fhop | Maravilhoso, admirável, tão sublime, glorioso",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c4db4994fc0eabf6559e581e0",
+        "owner": {
+          "id": "",
+          "name": "mi"
+        }
+      },
+      {
+        "id": "37i9dQZF1DZ06evO33FWiQ",
+        "uri": "spotify:playlist:37i9dQZF1DZ06evO33FWiQ",
+        "name": "This Is Samuel Messias",
+        "image_url": "https://pickasso.spotifycdn.com/image/ab67c0de0000deef/dt/v1/img/thisisv3/5cFlGTfDoYwRGZrtEO92MJ/pt",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "4zwAt6WPUUFIOfO7RhJut2",
+        "uri": "spotify:playlist:4zwAt6WPUUFIOfO7RhJut2",
+        "name": "ALISSON SANTOS AS MELHORES ",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84e832154cfa7653fa507ec00b",
+        "owner": {
+          "id": "",
+          "name": "Jonasbaprates Big Ones"
+        }
+      },
+      {
+        "id": "7uCOfgipbfxjNbZdYrUN1m",
+        "uri": "spotify:playlist:7uCOfgipbfxjNbZdYrUN1m",
+        "name": "GOSPEL 2026 🔥 Top 50 As Mais Tocadas 🎶",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cd3874024b67ad30f73320275",
+        "owner": {
+          "id": "",
+          "name": "Gabriel Brito"
+        }
+      },
+      {
+        "id": "37i9dQZF1DZ06evO2jR1Kf",
+        "uri": "spotify:playlist:37i9dQZF1DZ06evO2jR1Kf",
+        "name": "This Is Sarah Farias",
+        "image_url": "https://pickasso.spotifycdn.com/image/ab67c0de0000deef/dt/v1/img/thisisv3/3YvHDhzmrkcYZuKN7A2KBK/en",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "2IiKDj1NGZjHl6hhjaQH4r",
+        "uri": "spotify:playlist:2IiKDj1NGZjHl6hhjaQH4r",
+        "name": "O inimigo tenta laços e embaraços pra me envergonhar, mas não vai",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c661e32887fac8703bf400205",
+        "owner": {
+          "id": "",
+          "name": "MP3 Gospel"
+        }
+      },
+      {
+        "id": "3an87BCSP5xzPTkrxx9IRC",
+        "uri": "spotify:playlist:3an87BCSP5xzPTkrxx9IRC",
+        "name": "AS MELHORES Gospel Mais Tocadas Louvor e Adoração - Pedro Henrique  ",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84c9aed0d91f8d30a693bcb558",
+        "owner": {
+          "id": "",
+          "name": "Jonasbaprates Big Ones"
+        }
+      },
+      {
+        "id": "6h1L1dxSRPJGYh2UeT7Lwo",
+        "uri": "spotify:playlist:6h1L1dxSRPJGYh2UeT7Lwo",
+        "name": "GOSPEL 2026 • AS MAIS TOCADAS (ATUALIZADA)",
+        "image_url": "https://mosaic.scdn.co/640/ab67616d00001e023fce61c2321b67e02c8fefc8ab67616d00001e026b892bbbe3a55a8d1643902bab67616d00001e027c64039d0742d64104d96be6ab67616d00001e02d8fb7634bb021850699eae2d",
+        "owner": {
+          "id": "",
+          "name": "A Dona da Playlist"
+        }
+      },
+      {
+        "id": "3OXUzmhUNF2RJTjPYxkjIW",
+        "uri": "spotify:playlist:3OXUzmhUNF2RJTjPYxkjIW",
+        "name": "GOSPEL - AS MAIS LINDAS CANÇÕES",
+        "image_url": "https://mosaic.scdn.co/640/ab67616d00001e0273d9eb145f621516f94ab0abab67616d00001e029880043efdd3cb6eb0c2cc67ab67616d00001e02c64158b5d31790e90682790dab67616d00001e02cadeeb461ffda0f41a746073",
+        "owner": {
+          "id": "",
+          "name": "Vivi Costa 🌻"
+        }
+      },
+      {
+        "id": "1eoYZVjFCfavBVvIRBqbjk",
+        "uri": "spotify:playlist:1eoYZVjFCfavBVvIRBqbjk",
+        "name": "PENTECOSTAL 2026 - AS MELHORES [Atualizado]",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84e433ce29f867c279c2055f0e",
+        "owner": {
+          "id": "",
+          "name": "list.ion"
+        }
+      },
+      {
+        "id": "1uOlA45o4dfwmXzVqsd1qN",
+        "uri": "spotify:playlist:1uOlA45o4dfwmXzVqsd1qN",
+        "name": "Ninguém imagina o que a gente passa, ninguém imagina o que a gente sente",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842ebb2e72356da8866e643d95",
+        "owner": {
+          "id": "",
+          "name": "MP3 Gospel"
+        }
+      },
+      {
+        "id": "37i9dQZF1DZ06evO1wXGT5",
+        "uri": "spotify:playlist:37i9dQZF1DZ06evO1wXGT5",
+        "name": "This Is Felipe Rodrigues",
+        "image_url": "https://pickasso.spotifycdn.com/image/ab67c0de0000deef/dt/v1/img/thisisv3/2Fg24GlhFBtqn2c9FxzFrS/en",
+        "owner": {
+          "id": "",
+          "name": "Spotify"
+        }
+      },
+      {
+        "id": "1po58JsvbpSsOeXvJVYW5Y",
+        "uri": "spotify:playlist:1po58JsvbpSsOeXvJVYW5Y",
+        "name": "LOUVORES CULTO JOVEM (AGITADOS) ",
+        "image_url": "https://mosaic.scdn.co/640/ab67616d00001e02c2ddea690916ede8b74d7343ab67616d00001e02c3fc7d31e02cefb5ba6233b6ab67616d00001e02e598cac57622d4d28ec508f2ab67616d00001e02f9615850e0fd53c3424597a8",
+        "owner": {
+          "id": "",
+          "name": "Rafael Bmx"
+        }
+      },
+      {
+        "id": "18P2wdJNhQ5OeQwQdmzDr8",
+        "uri": "spotify:playlist:18P2wdJNhQ5OeQwQdmzDr8",
+        "name": "Espírito Santo ore por mim",
+        "image_url": "https://mosaic.scdn.co/640/ab67616d00001e02330a190baa11a3988d81efd4ab67616d00001e023ddd269344615ae29f66dde1ab67616d00001e02c0a2d3abeb225611c0edb658ab67616d00001e02d3a4eb28bfaf0fff8c60c1e9",
+        "owner": {
+          "id": "",
+          "name": "fernanda12"
+        }
+      },
+      {
+        "id": "2ETkTEbdNmPyKXyw13CeTx",
+        "uri": "spotify:playlist:2ETkTEbdNmPyKXyw13CeTx",
+        "name": "LOUVORES DE ADORAÇÃO 2026",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cae6474e81c0f001772b52572",
+        "owner": {
+          "id": "",
+          "name": "UPMÚSICA"
+        }
+      },
+      {
+        "id": "1riD1dBljcgvE1hJTBUCQV",
+        "uri": "spotify:playlist:1riD1dBljcgvE1hJTBUCQV",
+        "name": "TUDO É PERDA - Felipe Rodrigues - Gospel",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da842a0bbfa9fd06fd65a6f8aadb",
+        "owner": {
+          "id": "",
+          "name": "BRASAS"
+        }
+      },
+      {
+        "id": "1HXZcDylsPdnhCCAUk5ZXL",
+        "uri": "spotify:playlist:1HXZcDylsPdnhCCAUk5ZXL",
+        "name": "SAMUEL MESSIAS - MELHORES",
+        "image_url": "https://mosaic.scdn.co/640/ab67616d00001e021cbbcbbd065ce0c1bc8905a4ab67616d00001e02330a190baa11a3988d81efd4ab67616d00001e025e19b2ecbabc6c82b8b43cddab67616d00001e02fb534835fe11d14e3ed9609f",
+        "owner": {
+          "id": "",
+          "name": "xy9nh5awi34xz7vb7x29tp3oe"
+        }
+      },
+      {
+        "id": "2uyHUQ2LTGYIJ0UFWwuyNe",
+        "uri": "spotify:playlist:2uyHUQ2LTGYIJ0UFWwuyNe",
+        "name": "Terra Seca - Ao Vivo",
+        "image_url": "https://mosaic.scdn.co/640/ab67616d00001e02267a75ed11b4d462e9d92782ab67616d00001e0254fc254983538456d794ce53ab67616d00001e02c088d9a07146ca109303de4aab67616d00001e02d7b89b1836f6923055c6dcc0",
+        "owner": {
+          "id": "",
+          "name": "Gabryella Munique"
+        }
+      },
+      {
+        "id": "24WJdzuyD57GET10LE4dIq",
+        "uri": "spotify:playlist:24WJdzuyD57GET10LE4dIq",
+        "name": "Aquieta minhalma faz meu coração ouvir tua voz, me chama pra perto só assim eu não me sinto só...",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84cc20fbc0cb084740f5297395",
+        "owner": {
+          "id": "",
+          "name": "UPMÚSICA"
+        }
+      },
+      {
+        "id": "2qpGlWgoj5cffmo0xK27ne",
+        "uri": "spotify:playlist:2qpGlWgoj5cffmo0xK27ne",
+        "name": "LUKAS AGUSTINHO | As Melhores e Mais Tocadas do Gospel",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da840f4c99066e641bde68adf62c",
+        "owner": {
+          "id": "",
+          "name": "BRASAS"
+        }
+      },
+      {
+        "id": "594s1xXx5pQY7xuknbzkqN",
+        "uri": "spotify:playlist:594s1xXx5pQY7xuknbzkqN",
+        "name": "Eu vou fazer o impossível acontecer na sua vida e todos vão te olhar e vão dizer meu Deus ",
+        "image_url": "https://image-cdn-fa.spotifycdn.com/image/ab67706c0000d72c186f0b31dc62daed8e8b28b4",
+        "owner": {
+          "id": "",
+          "name": "mi"
+        }
+      },
+      {
+        "id": "6OEjV0PGUiK20ff5daSgzM",
+        "uri": "spotify:playlist:6OEjV0PGUiK20ff5daSgzM",
+        "name": "GOSPEL 2026 - AS MAIS TOCADAS (ATUALIZADO)",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da843d1d948ec2783f23daf872b5",
+        "owner": {
+          "id": "",
+          "name": "Gabriel Brito"
+        }
+      },
+      {
+        "id": "63jtRufP2w1NdEHnK8Gvv1",
+        "uri": "spotify:playlist:63jtRufP2w1NdEHnK8Gvv1",
+        "name": "Porque pararam de falar do céu, acham que Cristo não vai mais voltar",
+        "image_url": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846ae70932004ea0712a2d3184",
+        "owner": {
+          "id": "",
+          "name": "MP3 Gospel"
+        }
+      }
+    ],
+    "source": "graphql"
+  },
+  "related": {
+    "id": "5cFlGTfDoYwRGZrtEO92MJ",
+    "name": "Samuel Messias",
+    "related": [
+      {
+        "id": "6tLHGlt7L7raSf6vr96hWi",
+        "name": "Julia Vitória",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb747e630150d95c02b2632d06"
+      },
+      {
+        "id": "14IQ7niDNXIIrOSjr32E7O",
+        "name": "Lukas Agustinho",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb06f4972c7fd0ceef0d1cc1d2"
+      },
+      {
+        "id": "4K4fsuNkaAwysF3AxRPLNh",
+        "name": "Valesca Mayssa",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebfa88e63a1f41cab82e0db1d4"
+      },
+      {
+        "id": "5eo3eRvCHJhgMDL6K1cbMT",
+        "name": "Sarah Beatriz",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebbfef8cb7efba80ccf355718d"
+      },
+      {
+        "id": "0aCN6JIKoXyhkzyL3LaCpI",
+        "name": "Kellen Byanca",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebd6260961404ec9681c9eb425"
+      },
+      {
+        "id": "1UNm54Ts7vBGKcWjbjEmMw",
+        "name": "Midian Lima",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eba74afd043f0275034cf4da01"
+      },
+      {
+        "id": "4fdCGYM7dtJLa3LvR1ccto",
+        "name": "Gabriela Rocha",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb705bb32f63916b6cb5ed67f8"
+      },
+      {
+        "id": "5ETTRSAa5g5uIMNOgqnJPB",
+        "name": "Gabriel Guedes de Almeida",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb54b4f747e95495b6eb080817"
+      },
+      {
+        "id": "4Cp8MAVITZ6a8qjTVvhV28",
+        "name": "Jefferson & Suellen",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb4236b6bf4674f833f3e9cf76"
+      },
+      {
+        "id": "24lc8iaQY0UHitOufmSGko",
+        "name": "Paulo Neto",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb5284d5b5eff80d9918dfcce7"
+      },
+      {
+        "id": "2e84TbIwlMbSgm1CO6chyE",
+        "name": "Gabriela Gomes",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebe3aceaa7fac52dc5daab00bb"
+      },
+      {
+        "id": "1THj0JI7zld7YDsWERcSUz",
+        "name": "Isaias Saad",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb3e01b9bfe5982b2eeb2e7a05"
+      },
+      {
+        "id": "6SuvEQMnKI1I4rfErcOdi2",
+        "name": "Marcelo Markes",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb4784fda5c9b300859b369988"
+      },
+      {
+        "id": "6z6iovCkrGvBsRsLOrFbdx",
+        "name": "Davi Sacer",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eba4c6eb5f6ab2345208e4cf72"
+      },
+      {
+        "id": "4EaUmdr2olpJ9n2OARYRJ2",
+        "name": "Sued Silva",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb1938437cee804a217e039531"
+      },
+      {
+        "id": "7FJXPSSrHgr0YDfeiQ63uk",
+        "name": "Nívea Soares",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb0fc13ff7981acceae5e17f88"
+      },
+      {
+        "id": "5GHeXsPtAVd0KLe1oMikxm",
+        "name": "Kemuel",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebd94a17a325f6d68b6ab2f3ec"
+      },
+      {
+        "id": "5LCTcU1OktZQTuh4LFIdzU",
+        "name": "Ana Nóbrega",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb422b6e4503026ee1aa03702d"
+      },
+      {
+        "id": "1lqxvuE0yfesGRZ4sdVVNm",
+        "name": "Stella Laura",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebab449dfa33fc357db0d4613b"
+      },
+      {
+        "id": "5QiowaqBJe5wxa8S1c2Xhr",
+        "name": "Leandro Soares",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb118104dbe490aea810d25118"
+      },
+      {
+        "id": "6A2IF7XPAGiwRZAxXTKpYP",
+        "name": "AMÉM",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebb71520fc4b9ebdb194ed4f2b"
+      },
+      {
+        "id": "3bTnUXCo3suJiLVb79pExe",
+        "name": "Theo Rubia",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebd6e7140f246348a4e11fc19a"
+      },
+      {
+        "id": "5Ip7ix7yIh34uZbY1Ppws9",
+        "name": "Ministério Avivah",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eba059f0dd60cab9e6871835f8"
+      },
+      {
+        "id": "6S6ekwAUY7h8PALjCq9XjR",
+        "name": "Luma Elpidio",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebc0bf8eacc491539651145c43"
+      },
+      {
+        "id": "4Gbrv0tqC8CkFU639l5VjD",
+        "name": "Kailane Frauches",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb99cb7738e55531fb282d9d3d"
+      },
+      {
+        "id": "2eYrf1zekGvHGRkl9DZyGR",
+        "name": "Renascer Praise",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb79d5e33f2d30eed879eeb1b1"
+      },
+      {
+        "id": "0YdeGzSneJdP1NEKY3EFlR",
+        "name": "Bruna Karla",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebda4aaaa76080258d5c505f30"
+      },
+      {
+        "id": "3YvHDhzmrkcYZuKN7A2KBK",
+        "name": "Sarah Farias",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb2ccf1bb9aaed7b3576d0467e"
+      },
+      {
+        "id": "0pbjSAsHhPTgf9YQymeZdM",
+        "name": "Heloisa Rosa",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebdd5431b59a01181d1c34491e"
+      },
+      {
+        "id": "0IkWyvcpQ0bdOmRvnJl5ld",
+        "name": "Kemilly Santos",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb23c914b73c2dcb72cec42317"
+      },
+      {
+        "id": "1W08UTn6HSj0dHarQE7ReQ",
+        "name": "Leandro Borges",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb87d586cac5fdc7f98f76ff7d"
+      },
+      {
+        "id": "6bxqwbU9pD8GXcuSmNSSHU",
+        "name": "Ministério Zoe",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb044704fdfe9fa5d57b37531a"
+      },
+      {
+        "id": "4IefiwlkKHUFoRdBsGj756",
+        "name": "Ton Carfi",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb0f4c0bcb12aea7fe78cbb1d4"
+      },
+      {
+        "id": "0g4xsygciHCrujQzdXUudC",
+        "name": "Jessé Aguiar",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb2aa7b247a8dd50bed6f9e20f"
+      },
+      {
+        "id": "1pZ1kGj7yoPvG1sSN74imk",
+        "name": "Maria Marçal",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb106f862a278efe5cc440dac2"
+      },
+      {
+        "id": "2vk7Xg1PFNhLuqJlXTRy8F",
+        "name": "Pedras Vivas",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5ebbdcfa1c7850fe0c79bdf3847"
+      },
+      {
+        "id": "0IPQAIkLxcVSsxlTPPn3Bp",
+        "name": "Soraya Moraes",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb863c21e331124546c7defc71"
+      },
+      {
+        "id": "2llyl9OO3itnyIvJcIEaeP",
+        "name": "Marquinhos Gomes",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb8c9c2c7b9006f22fffc26332"
+      },
+      {
+        "id": "3MVA7SeqC0Qh8NsGoYXwd7",
+        "name": "Marsena",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb03038cae2191314ff3422ece"
+      },
+      {
+        "id": "0d71FlLkqZzdpEQifcngQq",
+        "name": "Julliany Souza",
+        "image_url": "https://i.scdn.co/image/ab6761610000e5eb8976f9557390d3d788070838"
+      }
+    ],
+    "source": "graphql"
+  }
+}
