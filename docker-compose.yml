@@ -1,0 +1,20 @@
+services:
+  scraper:
+    build: .
+    image: scraper-spotify:latest
+    container_name: scraper-spotify
+    restart: unless-stopped
+    volumes:
+      - scraper-data:/app/data
+    environment:
+      - TZ=America/Sao_Paulo
+      - PYTHONUNBUFFERED=1
+    command: ["tail", "-f", "/dev/null"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx,sqlite3; print('ok')"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+volumes:
+  scraper-data:

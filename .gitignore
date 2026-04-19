@@ -11,3 +11,11 @@ data/*.csv
 .pytest_cache/
 .vscode/
 .idea/
+
+# Artefatos de runtime (nunca versionar)
+data/stress_test_*/
+data/stress_test_async_*/
+data/stress_pool.json
+data/sync_runs/
+data/artist_report_*.json
+
