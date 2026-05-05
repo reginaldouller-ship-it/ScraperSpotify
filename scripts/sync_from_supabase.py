@@ -487,8 +487,13 @@ async def main_async(args) -> int:
             "spotify_tracks",
             columns="spotify_id,album_id",
             where="album_id=not.is.null",
+            order_by="spotify_id",
         )
-        artists = await sb.select_all("spotify_artists", columns="spotify_id")
+        artists = await sb.select_all(
+            "spotify_artists",
+            columns="spotify_id",
+            order_by="spotify_id",
+        )
         console.print(f"  tracks: [cyan]{len(tracks)}[/], artists: [cyan]{len(artists)}[/]")
 
         albums_set: set[str] = {t["album_id"] for t in tracks if t.get("album_id")}

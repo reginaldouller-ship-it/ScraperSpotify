@@ -113,48 +113,83 @@ class SupabaseClient:
         table: str,
         columns: str = "*",
         where: Optional[str] = None,
-        page_size: int = 5000,
+        order_by: str = "id",
+        page_size: int = 1000,
     ) -> list[dict]:
         """
-        SELECT paginado com header Range. Retorna todas as linhas.
-        where = filtro no formato PostgREST (ex: 'album_id=not.is.null').
-        Retry automático em 5xx/rede.
+        SELECT paginado por KEYSET (cursor) — não usa offset.
 
-        Importante: usa `Prefer: count=estimated` (não `count=exact`) porque
-        o COUNT(*) exato faz seq_scan na tabela inteira e estoura o
-        statement_timeout (8s) do role authenticator do Supabase quando a
-        tabela passa de ~80k rows. A estimativa vem do pg_class.reltuples,
-        é instantânea e suficiente pra paginar. O loop só termina quando
-        a página vier VAZIA — não quando vier menor que page_size, porque
-        page_size grande pode ser truncado pelo PostgREST sem indicar fim.
+        Histórico das tentativas anteriores (e por que viraram pra keyset):
+
+        1. `Prefer: count=exact` + offset → COUNT(*) seq_scan estourava
+           statement_timeout=8s do role authenticator quando a tabela passou
+           de ~80k rows. Erro 57014.
+
+        2. `Prefer: count=estimated` + offset → estimativa do pg_class.reltuples
+           era ~98.650 mas real era 99.771. Quando o offset cruzava o estimado,
+           o PostgREST devolvia 416 PGRST103 "Requested range not satisfiable",
+           abortando o loop e perdendo ~1k rows.
+
+        3. **Keyset (atual)** — pagina por `order_by > last_seen`. Não depende
+           de count, não tem 416, sem statement_timeout (cada query é um simples
+           `WHERE col > X ORDER BY col LIMIT N`, super eficiente com index na
+           coluna). Funciona em qualquer tamanho de tabela.
+
+        Pré-requisito: `order_by` deve ser uma coluna ÚNICA e ORDENÁVEL — em
+        geral a PK. Default `"id"`. Se a tabela tem PK diferente, passar a coluna
+        explicitamente (ex: order_by="spotify_id").
+
+        IMPORTANTE: a coluna `order_by` é INCLUÍDA automaticamente nas colunas
+        retornadas mesmo se o caller não pedir — necessária pra montar o cursor.
         """
+        # Garante que order_by está nas columns retornadas (sem duplicar)
+        col_list = [c.strip() for c in columns.split(",")] if columns != "*" else []
+        if columns != "*" and order_by not in col_list:
+            cols_to_fetch = columns + "," + order_by
+        else:
+            cols_to_fetch = columns
+
         rows: list[dict] = []
-        offset = 0
+        last_seen: Optional[str] = None
+        page_num = 0
         while True:
-            url = f"{self._rest}/{table}?select={columns}"
+            page_num += 1
+            params = [
+                f"select={cols_to_fetch}",
+                f"order={order_by}.asc",
+                f"limit={page_size}",
+            ]
             if where:
-                url += f"&{where}"
-            headers = {
-                "Range-Unit": "items",
-                "Range": f"{offset}-{offset + page_size - 1}",
-                "Prefer": "count=estimated",
-            }
+                params.append(where)
+            if last_seen is not None:
+                # cursor: rows com order_by > last_seen
+                # PostgREST aceita filtro no mesmo formato que `where`
+                params.append(f"{order_by}=gt.{last_seen}")
+            url = f"{self._rest}/{table}?" + "&".join(params)
+            headers: dict = {}
             resp = await _retry_on_5xx(
                 lambda: self._select_page(url, headers),
-                op=f"SELECT {table} offset={offset}",
+                op=f"SELECT {table} keyset page={page_num}",
             )
             batch = resp.json()
-            rows.extend(batch)
-            # Termina quando a página vem vazia. Não usar `< page_size`:
-            # PostgREST pode truncar respostas grandes sem sinalizar o fim,
-            # e isso fazia o loop quebrar antes de paginar tudo.
-            if len(batch) == 0:
+            if not batch:
                 break
-            # Avança pelo tamanho REAL do batch (não pelo page_size pedido).
-            # Necessário porque PostgREST tem `db-max-rows` (default 1000) que
-            # pode truncar a resposta — se avançássemos pelo page_size pedido,
-            # pularíamos rows quando page_size > db-max-rows.
-            offset += len(batch)
+            rows.extend(batch)
+            # Cursor avança pra última row recebida — independe de db-max-rows
+            # ou de qualquer truncamento do PostgREST.
+            last_seen = batch[-1].get(order_by)
+            if last_seen is None:
+                # defesa: se a coluna do cursor for null em alguma row, abortar
+                # pra evitar loop infinito. Não deve acontecer com PKs.
+                raise SupabaseError(
+                    f"keyset pagination: order_by={order_by!r} retornou null em "
+                    f"row {batch[-1]} — coluna do cursor não pode ter NULL"
+                )
+            # Se vier menos que page_size, PODE ser fim (sem db-max-rows interferindo
+            # via cursor — mas pra ser safe, fazemos mais um round que retornará vazio).
+            if len(batch) < page_size:
+                # próximo round vai retornar [] e o break em `if not batch` fecha.
+                continue
         return rows
 
     # ---------- UPSERT ----------
