@@ -1,120 +1,87 @@
 # Spotify Streams Scraper
 
-Scraper para coletar dados do Spotify **não disponíveis na API pública oficial**:
-- Play count (streams totais) de tracks
-- Monthly listeners de artistas
-- World rank, followers, top cities
-- Daily streams (diferença calculada entre snapshots diários)
+Scraper que coleta do Spotify dados **não disponíveis na API oficial**: playcount por track, monthly listeners, world rank, top cities, "discovered on" playlists. Usa a **Partner GraphQL** (`api-partner.spotify.com`) com token anônimo do Web Player. Roda diariamente em produção via cron no Coolify e escreve em snapshots no Supabase do Miner.
 
-Usa a **Partner API GraphQL** (`api-partner.spotify.com`) com token anônimo do Web Player.
+> **Para entender em 30 segundos:** leia [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). **Pra debugar problemas:** [docs/RUNBOOK.md](docs/RUNBOOK.md). **Pra mexer no código:** [CLAUDE.md](CLAUDE.md).
 
-## Descobertas empíricas importantes
+## Onde roda
 
-Testado em 2026-04-15 com o álbum `1FYY6MlQ0LmGY7aO8JEpG3` (Samuel Messias — Ainda Tem Promessa):
+- **Cron diário:** Coolify VPS (`http://187.127.73.16:8000`) — task `sync-diario`, todo dia 09:00 SP (12:00 UTC)
+- **Banco de destino:** Supabase Miner (`suzcbyzidnzzahwrkveh.supabase.co`)
+- **Repo deployado:** branch `main`, auto-deploy no push
 
-1. **A Embed API NÃO retorna playcount.** O HTML de `open.spotify.com/embed/album/<id>` e `/embed/track/<id>` tem metadata (nome, duração, artista, track IDs) mas nenhum campo de streams. A única fonte confiável de playcount é a **Partner GraphQL API**.
-2. **A Embed é ótima como fonte de `accessToken`.** O `__NEXT_DATA__` da página de embed contém `state.settings.session.accessToken` — o MESMO token anônimo que o endpoint `/get_access_token` retorna. Útil quando o endpoint direto está bloqueado (403) ou com rate limit.
-3. **Hashes validados hoje** (podem mudar):
-   - `getAlbum`: `46ae954ef2d2fe7732b4b2b4022157b2e18b7ea84f70591ceb164e4de1b5d5d3` ✅
-   - `queryArtistOverview`: `35648a112beb1794e39ab931365f6ae4a8d45e65396d641eeda94e4003d41497` ✅
-
-## Status: MVP funcional
-
-- ✅ Autenticação com duas fontes (endpoint direto + fallback via embed `__NEXT_DATA__`)
-- ✅ Client GraphQL (getAlbum, queryArtistOverview) com retry/backoff e detecção de hash obsoleto
-- ✅ Embed como fallback de metadata (registro de tracks de um álbum quando GraphQL falha)
-- ✅ Persistência SQLite com snapshots diários, UPSERT idempotente e cálculo de daily_streams
-- ✅ CLI: `add_tracks`, `run_daily`, `export_csv`
-- ✅ **Validado**: 8 tracks + 1 artista extraídos com playcount real e monthly_listeners = 2.458.830
-- ⚠️ Não suporta ainda: adicionar tracks via URL de playlist ou só artist_id
-- ⚠️ Não faz descoberta automática de hashes (hardcoded — atualizar manualmente se quebrar)
-
-## Setup
+## Como rodar localmente
 
 ```bash
-# Criar venv e instalar dependências
 python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # Linux/Mac
+source .venv/bin/activate     # Linux/Mac
+# .venv\Scripts\activate      # Windows
 pip install -r requirements.txt
+
+# .env precisa de:
+#   SUPABASE_URL=https://suzcbyzidnzzahwrkveh.supabase.co
+#   SUPABASE_SERVICE_ROLE_KEY=...
+
+# Sync diário (igual o que roda no Coolify)
+python -m scripts.sync_from_supabase --dry-run     # smoke test, não escreve
+python -m scripts.sync_from_supabase --limit 10    # 10 albums + 10 artists
+python -m scripts.sync_from_supabase               # run completa
 ```
 
-## Uso
+## Comandos úteis (CLI)
 
-### 1. Adicionar álbum ao monitoramento
+| Comando | O que faz |
+|---|---|
+| `python -m scripts.sync_from_supabase` | Sync diário Supabase ↔ Spotify Partner GraphQL (rodada em prod) |
+| `python -m scripts.run_daily` | Snapshot diário usando SQLite local (legacy/dev) |
+| `python -m scripts.add_tracks --album <url>` | Adiciona álbum ao monitoramento (SQLite local) |
+| `python -m scripts.export_csv --output report.csv` | Exporta dados do SQLite local |
+| `python -m scripts.discover_hashes --write` | Redescobre os SHA-256 das persisted queries quando o Spotify atualiza |
 
-```bash
-python -m scripts.add_tracks --album "https://open.spotify.com/album/1FYY6MlQ0LmGY7aO8JEpG3"
-# ou só o ID:
-python -m scripts.add_tracks --album 1FYY6MlQ0LmGY7aO8JEpG3
-```
+## Stack
 
-Isso registra todas as tracks do álbum na tabela `monitored_tracks`, mas ainda não grava snapshot.
+- **Python 3.12** + `httpx` async + `tenacity` (retry/backoff) + `rich` (logs)
+- **PostgREST** (cliente customizado em `src/supabase_client.py` com keyset pagination)
+- **20 workers async** em paralelo no sync
+- **Docker / Coolify** para deploy
 
-### 2. Rodar snapshot diário
-
-```bash
-python -m scripts.run_daily
-```
-
-Para cada álbum monitorado, busca play count atual de todas as tracks (agrupando por álbum = 1 request por álbum). Para cada artista distinto, busca overview (monthly listeners, followers, world rank). Grava snapshot do dia em `track_snapshots` / `artist_snapshots`. O `daily_streams` é calculado automaticamente como diferença com o snapshot mais recente anterior.
-
-Se rodar duas vezes no mesmo dia, faz UPSERT (não duplica).
-
-### 3. Ver status do DB
-
-```bash
-python -m scripts.run_daily --status
-```
-
-### 4. Exportar CSV
-
-```bash
-python -m scripts.export_csv --output data/report.csv
-python -m scripts.export_csv --from 2026-04-01 --to 2026-04-15 --output abril.csv
-```
-
-## Atualizando os sha256Hash GraphQL
-
-Quando o Spotify atualiza os hashes das persisted queries, o scraper vai receber `HashOutdatedError` e cair no Embed (que não tem monthly listeners — só play count).
-
-Para atualizar:
-1. Abra https://open.spotify.com/album/<qualquer-album> no Chrome
-2. DevTools → Network → filtro "api-partner"
-3. Encontre a request `getAlbum` ou `queryArtistOverview`
-4. Copie o valor de `extensions.persistedQuery.sha256Hash` (parâmetro da URL)
-5. Cole em `config/settings.py:GRAPHQL_HASHES`
-
-## Arquitetura
+## Estrutura
 
 ```
-scraper-streams/
-├── config/settings.py       # Configurações (DB, rate limits, hashes)
+.
+├── config/settings.py                   Config: hashes, rate limits, env vars
 ├── src/
-│   ├── auth.py              # Token anônimo do Web Player
-│   ├── graphql.py           # Partner API client
-│   ├── embed.py             # Embed API client (fallback)
-│   ├── db.py                # SQLite com schema + upserts
-│   ├── models.py            # Dataclasses
-│   └── scraper.py           # Orquestrador
+│   ├── auth.py                          Token anônimo (endpoint direto + fallback embed)
+│   ├── graphql.py                       Cliente Partner GraphQL síncrono
+│   ├── embed.py                         Cliente embed (fallback de metadata)
+│   ├── supabase_client.py               Cliente PostgREST (keyset pagination)
+│   ├── db.py                            SQLite local (modo legacy/dev)
+│   ├── models.py                        Dataclasses
+│   └── scraper.py                       Orquestrador modo legacy/dev
 ├── scripts/
-│   ├── add_tracks.py        # CLI: adicionar álbuns/tracks
-│   ├── run_daily.py         # CLI: snapshot diário
-│   └── export_csv.py        # CLI: exportar dados
-└── data/spotify_streams.db  # SQLite (criado automaticamente)
+│   ├── sync_from_supabase.py            🔵 PRODUÇÃO: sync diário Supabase ↔ Spotify
+│   ├── run_daily.py                     Modo legacy SQLite local
+│   ├── add_tracks.py / list_tracks.py   CLIs de gestão (legacy)
+│   ├── export_csv.py                    Export do SQLite
+│   └── discover_hashes.py               Redescoberta de SHA-256 quando Spotify atualiza
+├── miner-integration/                   Cliente TypeScript do Miner (não versionado)
+│   └── supabase/migrations/             Migrations aplicadas no Supabase
+├── docs/                                ARCHITECTURE.md + RUNBOOK.md
+├── CLAUDE.md                            Convenções e anti-padrões (leitura obrigatória)
+├── CHANGELOG.md                         Histórico de mudanças
+├── Dockerfile, docker-compose.yml       Imagem para Coolify
+└── README.md                            (este arquivo)
 ```
 
-## Schema do banco
+## Sintomas comuns e onde olhar
 
-- `monitored_tracks`: tracks em monitoramento
-- `monitored_albums`: álbuns em monitoramento (derivado)
-- `monitored_artists`: artistas em monitoramento
-- `track_snapshots`: snapshots diários de play count (+ `daily_streams` calculado)
-- `artist_snapshots`: snapshots diários de monthly listeners, followers, etc.
-- `daily_streams` (view): join amigável com percent change
+| Sintoma | Onde investigar |
+|---|---|
+| Task falha com `57014 statement timeout` | [docs/RUNBOOK.md](docs/RUNBOOK.md#timeout-57014) |
+| `PGRST103 Requested range not satisfiable` | [docs/RUNBOOK.md](docs/RUNBOOK.md#pgrst103) |
+| `HashOutdatedError` ou `PersistedQueryNotFound` | [docs/RUNBOOK.md](docs/RUNBOOK.md#hash-desatualizado) |
+| Snapshots/dia caindo aos poucos | [docs/RUNBOOK.md](docs/RUNBOOK.md#snapshots-incompletos) |
 
-## Notas
+## Notas legais
 
-- **Rate limiting:** conservador por padrão (0.5–2s entre requests GraphQL, 1–3s entre embed). Se receber 3×429 seguidos, pausa 5min.
-- **Legal:** acessa dados públicos do Web Player (sem login, sem dados privados). Pode violar ToS do Spotify — use por sua conta e risco.
-- **Idempotência:** rodar `run_daily` 2× no mesmo dia faz UPSERT, não duplica.
+Usa dados públicos do Web Player (sem login, sem dados privados). Pode violar ToS do Spotify — uso por sua conta e risco.
