@@ -32,7 +32,11 @@ logger = logging.getLogger(__name__)
 
 
 class SupabaseError(Exception):
-    pass
+    def __init__(self, message: str, *, status_code: Optional[int] = None):
+        super().__init__(message)
+        # status HTTP da resposta (quando aplicável). Permite distinguir 4xx
+        # (dado ruim: FK, CHECK) de 5xx (infra) sem fazer parse da mensagem.
+        self.status_code = status_code
 
 
 async def _retry_on_5xx(coro_fn, *, max_attempts: int = 4, op: str = "request"):
@@ -104,7 +108,8 @@ class SupabaseClient:
         resp = await self._client.get(url, headers=headers)
         if resp.status_code not in (200, 206):
             raise SupabaseError(
-                f"SELECT falhou {resp.status_code}: {resp.text[:300]}"
+                f"SELECT falhou {resp.status_code}: {resp.text[:300]}",
+                status_code=resp.status_code,
             )
         return resp
 
@@ -199,7 +204,8 @@ class SupabaseClient:
         resp = await self._client.post(url, json=chunk, headers=headers)
         if resp.status_code not in (200, 201, 204):
             raise SupabaseError(
-                f"UPSERT {label} falhou {resp.status_code}: {resp.text[:500]}"
+                f"UPSERT {label} falhou {resp.status_code}: {resp.text[:500]}",
+                status_code=resp.status_code,
             )
 
     async def upsert(
@@ -239,7 +245,8 @@ class SupabaseClient:
         resp = await self._client.delete(url, headers={"Prefer": "return=minimal"})
         if resp.status_code not in (200, 204):
             raise SupabaseError(
-                f"DELETE {label} falhou {resp.status_code}: {resp.text[:300]}"
+                f"DELETE {label} falhou {resp.status_code}: {resp.text[:300]}",
+                status_code=resp.status_code,
             )
 
     async def delete_where(self, table: str, where: str) -> None:

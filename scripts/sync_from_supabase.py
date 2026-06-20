@@ -33,11 +33,12 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import random
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlencode
@@ -52,6 +53,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import settings  # noqa: E402
 from src.auth import SpotifyAuth  # noqa: E402
 from src.supabase_client import SupabaseClient  # noqa: E402
+from src.sync_status import decide_run_status  # noqa: E402
+from src.singleton_lock import acquire as acquire_lock, release as release_lock  # noqa: E402
+from src.snapshot_dedup import dedupe_track_snapshots  # noqa: E402
+from src.buffered_writer import BufferedUpserter, resilient_upsert  # noqa: E402
 
 console = Console()
 logging.basicConfig(
@@ -64,6 +69,13 @@ logger = logging.getLogger("sync_supabase")
 
 DEFAULT_WORKERS = 20
 UPSERT_BATCH_SIZE = 500
+# Flush incremental: grava o buffer de track quando passa deste tamanho, em vez de
+# acumular ~3M linhas em RAM (causa do OOM no incidente 2026-06-19). Tunável por env.
+FLUSH_AT = int(os.getenv("SYNC_FLUSH_AT", "5000"))
+
+# Trava de instância única (incidente 2026-06-19). Path no /tmp do container —
+# limpo no restart (e restart = nenhuma run ativa, então tudo bem).
+LOCK_PATH = os.getenv("SYNC_LOCK_PATH", "/tmp/sync_from_supabase.lock")
 
 
 # ============================================================
@@ -278,6 +290,7 @@ class SyncStats:
     artist_snapshot_updates: int = 0
     top_cities_rows: int = 0
     discovered_on_rows: int = 0
+    rows_skipped_bad: int = 0  # linhas puladas no upsert por erro 4xx/CHECK (resiliência)
 
     errors: list[str] = field(default_factory=list)
     start_ts: float = 0.0
@@ -298,7 +311,7 @@ async def album_worker(
     client: httpx.AsyncClient,
     holder: TokenHolder,
     stats: SyncStats,
-    track_snap_rows: list[dict],
+    track_writer: BufferedUpserter,
     snapshot_date_iso: str,
     known_track_ids: set[str],
 ) -> None:
@@ -317,17 +330,22 @@ async def album_worker(
             variables = {"uri": f"spotify:album:{album_id}", "locale": "", "offset": 0, "limit": 300}
             data = await graphql_query(client, holder, "getAlbum", variables)
             parsed = parse_album(album_id, data)
+            album_rows: list[dict] = []
             for tr in parsed["tracks"]:
                 if tr["playcount"] is None:
                     continue
                 if tr["id"] not in known_track_ids:
                     stats.tracks_skipped_not_in_db += 1
                     continue
-                track_snap_rows.append({
+                album_rows.append({
                     "spotify_track_id": tr["id"],
                     "date": snapshot_date_iso,
                     "playcount": tr["playcount"],
                 })
+            # flush incremental: empurra as tracks deste álbum pro writer com buffer,
+            # que grava em lotes durante a run (RAM baixa, sem acumular ~3M linhas).
+            if album_rows:
+                await track_writer.add(album_rows)
             stats.albums_ok += 1
         except Exception as e:
             stats.albums_failed += 1
@@ -359,12 +377,19 @@ async def artist_worker(
                 {"uri": f"spotify:artist:{artist_id}", "locale": "", "includePrerelease": True},
             )
             overview = parse_artist_overview(artist_id, ov_data)
-            artist_snap_updates.append({
-                "spotify_artist_id": artist_id,
-                "date": snapshot_date_iso,
-                "monthly_listeners": overview["monthly_listeners"],
-                "world_rank": overview["world_rank"],
-            })
+            # Só grava se houver ao menos um dado útil. Escrever {ml:None, wr:None}
+            # num merge-duplicates sobrescreveria valores bons numa re-run do mesmo
+            # dia (a linha é COMPARTILHADA com popularity/follower do collector — o
+            # contrato é explícito sobre não corromper essa linha).
+            ml = overview["monthly_listeners"]
+            wr = overview["world_rank"]
+            if ml is not None or wr is not None:
+                artist_snap_updates.append({
+                    "spotify_artist_id": artist_id,
+                    "date": snapshot_date_iso,
+                    "monthly_listeners": ml,
+                    "world_rank": wr,
+                })
             for rank, c in enumerate(overview["top_cities"], start=1):
                 if not c.get("city"):
                     continue
@@ -410,60 +435,58 @@ async def artist_worker(
 async def flush_to_supabase(
     sb: SupabaseClient,
     stats: SyncStats,
-    track_snap_rows: list[dict],
     artist_snap_updates: list[dict],
     top_cities_rows: list[dict],
     discovered_on_rows: list[dict],
-    snapshot_date_iso: str,
-    artist_ids_in_run: set[str],
 ) -> None:
-    # 1. track_snapshots — simples upsert
-    if track_snap_rows:
-        # dedup por (spotify_track_id, date) mantendo última entrada
-        seen: dict[tuple[str, str], dict] = {}
-        for r in track_snap_rows:
-            seen[(r["spotify_track_id"], r["date"])] = r
-        deduped = list(seen.values())
-        console.print(f"  Enviando [cyan]{len(deduped)}[/] linhas → spotify_track_snapshots")
-        stats.track_snapshots = await sb.upsert(
-            "spotify_track_snapshots", deduped, batch_size=UPSERT_BATCH_SIZE,
-        )
+    # track_snapshots (a "bomba de RAM") já foi gravado INCREMENTALMENTE durante a
+    # fase de albums (BufferedUpserter). Aqui só restam os buffers pequenos
+    # (artist/top_cities/discovered), gravados no fim com a MESMA resiliência por-linha:
+    # resilient_upsert reenvia o lote linha-a-linha se um 4xx (FK/CHECK) derrubaria
+    # o lote inteiro — pula só a ruim, não a run. on_conflict EXPLÍCITO = a PK da tabela.
 
-    # 2. artist_snapshots — aqui tem uma sutileza: a tabela já pode ter linha do dia
-    # com popularity/follower_count da API oficial. Fazer UPSERT com só
-    # monthly_listeners/world_rank pode sobrescrever colunas. Solução: merge-duplicates
-    # do PostgREST só substitui as COLUNAS PRESENTES no payload. Então funciona.
+    # 1. artist_snapshots — LINHA COMPARTILHADA com o collector (popularity/follower).
+    # Mandamos só {monthly_listeners, world_rank}: o merge-duplicates do PostgREST
+    # só faz SET nas COLUNAS PRESENTES no payload, então não tocamos o que o
+    # collector gravou. NUNCA incluir popularity/follower aqui (nem como None).
     if artist_snap_updates:
         console.print(f"  Enviando [cyan]{len(artist_snap_updates)}[/] upserts → spotify_artist_snapshots")
-        stats.artist_snapshot_updates = await sb.upsert(
-            "spotify_artist_snapshots", artist_snap_updates, batch_size=UPSERT_BATCH_SIZE,
+        res = await resilient_upsert(
+            sb, "spotify_artist_snapshots", artist_snap_updates,
+            on_conflict="spotify_artist_id,date", batch_size=UPSERT_BATCH_SIZE,
         )
+        stats.artist_snapshot_updates = res.written
+        stats.rows_skipped_bad += res.skipped
 
-    # 3. top_cities — deletar e reinserir (rank pode mudar de ordem)
-    # Só deletamos do snapshot de hoje dos artistas que rodaram nesta run.
-    if artist_ids_in_run:
-        # PostgREST IN filter precisa ser escapado como string CSV entre parens
-        # Em volumes grandes (> ~500 IDs), quebrar em chunks pra não estourar query string
-        artist_id_list = sorted(artist_ids_in_run)
-        chunk_size = 200
-        for i in range(0, len(artist_id_list), chunk_size):
-            chunk = artist_id_list[i : i + chunk_size]
-            in_clause = "(" + ",".join(f'"{aid}"' for aid in chunk) + ")"
-            where = f"spotify_artist_id=in.{in_clause}&date=eq.{snapshot_date_iso}"
-            await sb.delete_where("spotify_artist_top_cities_snapshots", where)
-            await sb.delete_where("spotify_artist_discovered_on_snapshots", where)
-
+    # 2. top_cities e discovered_on — NÃO deletamos nada aqui.
+    # WHY (contrato rule [8]): essas tabelas são geridas pelo SERVIDOR — discovered_on
+    # é staging de um merge SCD-2 (15:30 UTC) e top_cities é podada (latest-only,
+    # 16:00 UTC). O DELETE-then-INSERT que havia aqui era desnecessário e arriscado:
+    #   - desnecessário: numa data nova não há linha anterior — o UPSERT por PK basta;
+    #   - arriscado: a única coisa que ele "resolvia" era a re-run no mesmo dia, e isso
+    #     a trava de instância única (singleton_lock) já elimina. Em troca, apagava
+    #     também a linha de artistas cuja coleta FALHOU na run (perda transitória).
+    # Cross-check no banco do Miner (20/jun): NÃO era corrupção permanente — o merge
+    # fecha vigência por EXISTS (presença), não por ausência, e top_cities fica stale
+    # no máx 1 dia. Removido mesmo assim: risco sem ganho. Quem não foi coletado
+    # simplesmente não recebe linha; a poda/merge é 100% do servidor.
     if top_cities_rows:
         console.print(f"  Enviando [cyan]{len(top_cities_rows)}[/] linhas → spotify_artist_top_cities_snapshots")
-        stats.top_cities_rows = await sb.upsert(
-            "spotify_artist_top_cities_snapshots", top_cities_rows, batch_size=UPSERT_BATCH_SIZE,
+        res = await resilient_upsert(
+            sb, "spotify_artist_top_cities_snapshots", top_cities_rows,
+            on_conflict="spotify_artist_id,date,rank", batch_size=UPSERT_BATCH_SIZE,
         )
+        stats.top_cities_rows = res.written
+        stats.rows_skipped_bad += res.skipped
 
     if discovered_on_rows:
         console.print(f"  Enviando [cyan]{len(discovered_on_rows)}[/] linhas → spotify_artist_discovered_on_snapshots")
-        stats.discovered_on_rows = await sb.upsert(
-            "spotify_artist_discovered_on_snapshots", discovered_on_rows, batch_size=UPSERT_BATCH_SIZE,
+        res = await resilient_upsert(
+            sb, "spotify_artist_discovered_on_snapshots", discovered_on_rows,
+            on_conflict="spotify_artist_id,date,spotify_playlist_id", batch_size=UPSERT_BATCH_SIZE,
         )
+        stats.discovered_on_rows = res.written
+        stats.rows_skipped_bad += res.skipped
 
 
 # ============================================================
@@ -472,13 +495,60 @@ async def flush_to_supabase(
 
 
 async def main_async(args) -> int:
-    snapshot_date = args.snapshot_date or date.today()
+    # Contrato (rule [5]): a `date` faz parte da PK das 4 tabelas e é a chave do
+    # dedup diário — DEVE ser a data UTC do dia da coleta. `date.today()` usava o
+    # fuso LOCAL do container: funciona de manhã (BRT == UTC), mas se a janela de
+    # coleta esticar pra noite (redesign quer até 23h BRT = já é o dia seguinte em
+    # UTC) o snapshot cairia na data errada vs. os crons de merge/poda do Miner.
+    snapshot_date = args.snapshot_date or datetime.now(timezone.utc).date()
     snapshot_date_iso = snapshot_date.isoformat()
     console.print(f"[bold cyan]Sync from Supabase[/]  snapshot_date=[yellow]{snapshot_date_iso}[/]")
     console.print(f"Workers: [yellow]{args.workers}[/]  Dry-run: [yellow]{args.dry_run}[/]  Limit: [yellow]{args.limit or 'sem'}[/]\n")
 
     stats = SyncStats()
     stats.start_ts = time.monotonic()
+
+    # Wall-clock do INÍCIO. monotonic() é ótimo pra medir duração, mas não vira
+    # timestamp legível. Bug antigo: `started_at` no log gravava datetime.now()
+    # no FIM da run (~2h depois), fazendo parecer que o cron disparou atrasado.
+    start_wall = datetime.now()
+    runs_dir = Path("data") / "sync_runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    log_path = runs_dir / f"{start_wall.strftime('%Y%m%d_%H%M%S')}_{snapshot_date_iso}.json"
+
+    def _write_run_log(status: str, token_refreshes: int = 0) -> None:
+        """Grava o log estruturado da run no MESMO arquivo, no início (stub
+        'in_progress') e no fim (status final). WHY: antes o log só era escrito
+        no sucesso, depois do flush — runs mortas no timeout/interrompidas (ex:
+        2026-06-13) não geravam log NENHUM, justo o caso que mais precisa de
+        diagnóstico. O stub inicial garante ao menos o rastro de que começou."""
+        payload = {
+            "status": status,
+            "started_at": start_wall.isoformat(timespec="seconds"),
+            "finished_at": datetime.now().isoformat(timespec="seconds"),
+            "snapshot_date": snapshot_date_iso,
+            "workers": args.workers,
+            "limit": args.limit or None,
+            "duration_s": round(stats.duration_s, 2),
+            "albums": {"ok": stats.albums_ok, "failed": stats.albums_failed},
+            "artists": {"ok": stats.artists_ok, "failed": stats.artists_failed},
+            "discovered_on": {"ok": stats.discovered_on_ok, "failed": stats.discovered_on_failed},
+            "writes": {
+                "track_snapshots": stats.track_snapshots,
+                "tracks_skipped_not_in_db": stats.tracks_skipped_not_in_db,
+                "artist_snapshots": stats.artist_snapshot_updates,
+                "top_cities_rows": stats.top_cities_rows,
+                "discovered_on_rows": stats.discovered_on_rows,
+                "rows_skipped_bad": stats.rows_skipped_bad,
+            },
+            "errors": stats.errors[:200],  # cap maior que antes (era 50)
+            "errors_count": len(stats.errors),
+            "token_refreshes": token_refreshes,
+        }
+        log_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Stub inicial — se a run morrer no meio (kill/timeout/redeploy), fica este rastro.
+    _write_run_log("in_progress")
 
     async with SupabaseClient() as sb:
         # ---- 1. Load IDs
@@ -513,6 +583,7 @@ async def main_async(args) -> int:
                 f"[bold]{len(albums_set) + 2*len(artists_set)}[/] requests totais.\n"
                 f"Sem flush ao Supabase."
             )
+            _write_run_log("dry_run")
             return 0
 
         # ---- 2. Setup GraphQL async
@@ -530,7 +601,14 @@ async def main_async(args) -> int:
         for a in artists_set:
             artist_queue.put_nowait(a)
 
-        track_snap_rows: list[dict] = []
+        # track_snapshots é a "bomba de RAM" (~3M linhas): grava INCREMENTALMENTE
+        # durante a fase de albums via BufferedUpserter, não acumula tudo pro fim.
+        track_writer = BufferedUpserter(
+            sb, "spotify_track_snapshots",
+            on_conflict="spotify_track_id,date",
+            flush_at=FLUSH_AT, batch_size=UPSERT_BATCH_SIZE,
+            dedupe=dedupe_track_snapshots,
+        )
         artist_snap_updates: list[dict] = []
         top_cities_rows: list[dict] = []
         discovered_on_rows: list[dict] = []
@@ -546,15 +624,19 @@ async def main_async(args) -> int:
             album_tasks = [
                 asyncio.create_task(album_worker(
                     i, album_queue, client, holder, stats,
-                    track_snap_rows, snapshot_date_iso, known_track_ids,
+                    track_writer, snapshot_date_iso, known_track_ids,
                 ))
                 for i in range(args.workers)
             ]
             await asyncio.gather(*album_tasks, return_exceptions=True)
+            await track_writer.flush()  # grava o que sobrou no buffer
+            stats.track_snapshots = track_writer.written
+            stats.rows_skipped_bad += track_writer.skipped
             console.print(
                 f"  albums OK=[green]{stats.albums_ok}[/] FAIL=[red]{stats.albums_failed}[/]  "
-                f"track_snapshots=[cyan]{len(track_snap_rows)}[/] "
+                f"track_snapshots=[cyan]{track_writer.written}[/] "
                 f"skipped (não em spotify_tracks)=[yellow]{stats.tracks_skipped_not_in_db}[/]"
+                + (f" [red]bad={track_writer.skipped}[/]" if track_writer.skipped else "")
             )
 
             console.print(f"\n[bold]4. Buscando {len(artists_set)} artists (overview + discovered_on)...[/]")
@@ -580,9 +662,7 @@ async def main_async(args) -> int:
         console.print("\n[bold]5. Flushing para Supabase...[/]")
         await flush_to_supabase(
             sb, stats,
-            track_snap_rows, artist_snap_updates, top_cities_rows, discovered_on_rows,
-            snapshot_date_iso,
-            artists_set,
+            artist_snap_updates, top_cities_rows, discovered_on_rows,
         )
 
     stats.end_ts = time.monotonic()
@@ -600,6 +680,7 @@ async def main_async(args) -> int:
     t.add_row("artist_snapshots upserts", str(stats.artist_snapshot_updates))
     t.add_row("top_cities rows", str(stats.top_cities_rows))
     t.add_row("discovered_on rows", str(stats.discovered_on_rows))
+    t.add_row("linhas puladas (4xx/dado ruim)", str(stats.rows_skipped_bad))
     console.print(t)
 
     if stats.errors:
@@ -607,34 +688,30 @@ async def main_async(args) -> int:
         for e in stats.errors[:10]:
             console.print(f"  [red]•[/] {e}")
 
-    # ---- 7. Log estruturado em arquivo (pra auditoria em runs unattended)
-    runs_dir = Path("data") / "sync_runs"
-    runs_dir.mkdir(parents=True, exist_ok=True)
-    log_path = runs_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{snapshot_date_iso}.json"
-    log_payload = {
-        "started_at": datetime.now().isoformat(timespec="seconds"),
-        "snapshot_date": snapshot_date_iso,
-        "workers": args.workers,
-        "limit": args.limit or None,
-        "duration_s": round(stats.duration_s, 2),
-        "albums": {"ok": stats.albums_ok, "failed": stats.albums_failed},
-        "artists": {"ok": stats.artists_ok, "failed": stats.artists_failed},
-        "discovered_on": {"ok": stats.discovered_on_ok, "failed": stats.discovered_on_failed},
-        "writes": {
-            "track_snapshots": stats.track_snapshots,
-            "tracks_skipped_not_in_db": stats.tracks_skipped_not_in_db,
-            "artist_snapshots": stats.artist_snapshot_updates,
-            "top_cities_rows": stats.top_cities_rows,
-            "discovered_on_rows": stats.discovered_on_rows,
-        },
-        "errors": stats.errors[:50],  # capa: no máx 50 erros pra não explodir o arquivo
-        "errors_count": len(stats.errors),
-        "token_refreshes": holder.refresh_count,
-    }
-    log_path.write_text(json.dumps(log_payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    console.print(f"\n[dim]Log: {log_path}[/]")
+    # ---- 7. Log estruturado final + decisão de status/exit-code
+    # WHY exit-code novo: antes era `0 se zero falhas senão 1`. Com ~450 mil
+    # itens, 1 blip de rede = exit 1 = "failed" no Coolify, mesmo gravando 99,9%.
+    # Agora só sai != 0 se a TAXA de falha passar de 1% (ver src/sync_status.py).
+    status, exit_code = decide_run_status(
+        stats.albums_ok, stats.albums_failed,
+        stats.artists_ok, stats.artists_failed,
+        stats.discovered_on_ok, stats.discovered_on_failed,
+    )
+    _write_run_log(status, token_refreshes=holder.refresh_count)
+    console.print(f"\n[dim]Log: {log_path}  (status={status}, exit={exit_code})[/]")
 
-    return 0 if (stats.albums_failed + stats.artists_failed) == 0 else 1
+    if status == "degraded":
+        console.print(
+            "[bold red]Run DEGRADED[/] — taxa de falha acima de 1%. "
+            "Exit 1: investigar (hash? rede? rate limit?)."
+        )
+    elif status == "partial":
+        console.print(
+            "[yellow]Run PARTIAL[/] — falhas pontuais (ruído transitório) abaixo "
+            "do limite. Exit 0: os dados do dia foram gravados."
+        )
+
+    return exit_code
 
 
 def parse_iso_date(s: str) -> date:
@@ -649,10 +726,25 @@ def main() -> int:
     p.add_argument("--snapshot-date", type=parse_iso_date, default=None,
                    help="ISO date (YYYY-MM-DD). Default: hoje")
     args = p.parse_args()
+
+    # Trava de instância única (incidente 2026-06-19): impede que uma 2ª run
+    # comece por cima de outra que ainda roda — era isso que empilhava processos
+    # órfãos e saturava a VPS de 1 vCPU. --dry-run não trava (é só leitura).
+    lock = None
+    if not args.dry_run:
+        lock = acquire_lock(LOCK_PATH)
+        if lock is None:
+            console.print(
+                f"[yellow]Outro sync já está em andamento (lock em {LOCK_PATH}). "
+                "Saindo sem empilhar.[/]"
+            )
+            return 0
     try:
         return asyncio.run(main_async(args))
     except KeyboardInterrupt:
         return 130
+    finally:
+        release_lock(lock)
 
 
 if __name__ == "__main__":
