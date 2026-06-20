@@ -67,7 +67,7 @@ logging.basicConfig(
 logger = logging.getLogger("sync_supabase")
 
 
-DEFAULT_WORKERS = 20
+DEFAULT_WORKERS = int(os.getenv("SYNC_WORKERS", "20"))  # override por env (fatia mínima-segura usa 8)
 UPSERT_BATCH_SIZE = 500
 # Flush incremental: grava o buffer de track quando passa deste tamanho, em vez de
 # acumular ~3M linhas em RAM (causa do OOM no incidente 2026-06-19). Tunável por env.

@@ -4,10 +4,19 @@ services:
     image: scraper-spotify:latest
     container_name: scraper-spotify
     restart: unless-stopped
+    # Caps de recurso — VPS de 1 vCPU/4GB compartilhada com o Coolify. Impedem que o
+    # sync sature o núcleo e desestabilize o Coolify (incidente 2026-06-19). O flush
+    # incremental mantém a RAM em MBs, então 3g é folga; cpus=0.7 deixa 0.3 pro sistema.
+    # memswap_limit = mem_limit → sem swap extra (previne thrash que ajudou a derrubar a VPS).
+    cpus: 0.7
+    mem_limit: 3g
+    memswap_limit: 3g
     volumes:
       - scraper-data:/app/data
     environment:
-      - TZ=America/Sao_Paulo
+      # Container em UTC (decisão spec §8): o sync_date já é UTC explícito no código;
+      # isto alinha os timestamps do log com o dado e com os crons do Miner.
+      - TZ=UTC
       - PYTHONUNBUFFERED=1
     command: ["tail", "-f", "/dev/null"]
     healthcheck:
