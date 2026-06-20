@@ -56,7 +56,7 @@ from src.supabase_client import SupabaseClient  # noqa: E402
 from src.sync_status import decide_run_status  # noqa: E402
 from src.singleton_lock import acquire as acquire_lock, release as release_lock  # noqa: E402
 from src.snapshot_dedup import dedupe_track_snapshots  # noqa: E402
-from src.buffered_writer import BufferedUpserter, resilient_upsert  # noqa: E402
+from src.buffered_writer import BufferedUpserter  # noqa: E402
 
 console = Console()
 logging.basicConfig(
@@ -360,9 +360,9 @@ async def artist_worker(
     client: httpx.AsyncClient,
     holder: TokenHolder,
     stats: SyncStats,
-    artist_snap_updates: list[dict],
-    top_cities_rows: list[dict],
-    discovered_on_rows: list[dict],
+    artist_writer: BufferedUpserter,
+    top_cities_writer: BufferedUpserter,
+    discovered_writer: BufferedUpserter,
     snapshot_date_iso: str,
 ) -> None:
     while True:
@@ -377,23 +377,24 @@ async def artist_worker(
                 {"uri": f"spotify:artist:{artist_id}", "locale": "", "includePrerelease": True},
             )
             overview = parse_artist_overview(artist_id, ov_data)
-            # Só grava se houver ao menos um dado útil. Escrever {ml:None, wr:None}
-            # num merge-duplicates sobrescreveria valores bons numa re-run do mesmo
-            # dia (a linha é COMPARTILHADA com popularity/follower do collector — o
-            # contrato é explícito sobre não corromper essa linha).
+            # Flush INCREMENTAL por artista (mata a 2ª bomba de RAM). Só grava se
+            # houver ao menos um dado útil: escrever {ml:None, wr:None} num
+            # merge-duplicates sobrescreveria valores bons numa re-run (a linha é
+            # COMPARTILHADA com popularity/follower do collector).
             ml = overview["monthly_listeners"]
             wr = overview["world_rank"]
             if ml is not None or wr is not None:
-                artist_snap_updates.append({
+                await artist_writer.add([{
                     "spotify_artist_id": artist_id,
                     "date": snapshot_date_iso,
                     "monthly_listeners": ml,
                     "world_rank": wr,
-                })
+                }])
+            city_rows = []
             for rank, c in enumerate(overview["top_cities"], start=1):
                 if not c.get("city"):
                     continue
-                top_cities_rows.append({
+                city_rows.append({
                     "spotify_artist_id": artist_id,
                     "date": snapshot_date_iso,
                     "rank": rank,
@@ -402,6 +403,9 @@ async def artist_worker(
                     "region": c.get("region"),
                     "listeners": c.get("listeners"),
                 })
+            if city_rows:
+                # add() de uma vez = os 5 ranks do artista ficam juntos no buffer (atômico por artista)
+                await top_cities_writer.add(city_rows)
             stats.artists_ok += 1
 
             # 2. Discovered on (request separado)
@@ -410,12 +414,17 @@ async def artist_worker(
                     client, holder, "queryArtistDiscoveredOn",
                     {"uri": f"spotify:artist:{artist_id}"},
                 )
+                # dedup por playlist: 2 linhas com a MESMA PK no mesmo lote quebram
+                # o ON CONFLICT do Postgres. Cada artista tem PKs distintas das dos outros.
+                do_by_pl: dict[str, dict] = {}
                 for pl in parse_discovered_on(artist_id, do_data):
-                    discovered_on_rows.append({
+                    do_by_pl[pl["spotify_playlist_id"]] = {
                         "spotify_artist_id": artist_id,
                         "date": snapshot_date_iso,
                         **pl,
-                    })
+                    }
+                if do_by_pl:
+                    await discovered_writer.add(list(do_by_pl.values()))
                 stats.discovered_on_ok += 1
             except Exception as e:
                 stats.discovered_on_failed += 1
@@ -425,68 +434,6 @@ async def artist_worker(
             stats.errors.append(f"artist {artist_id}: {e}")
         finally:
             queue.task_done()
-
-
-# ============================================================
-# Flush final pro Supabase
-# ============================================================
-
-
-async def flush_to_supabase(
-    sb: SupabaseClient,
-    stats: SyncStats,
-    artist_snap_updates: list[dict],
-    top_cities_rows: list[dict],
-    discovered_on_rows: list[dict],
-) -> None:
-    # track_snapshots (a "bomba de RAM") já foi gravado INCREMENTALMENTE durante a
-    # fase de albums (BufferedUpserter). Aqui só restam os buffers pequenos
-    # (artist/top_cities/discovered), gravados no fim com a MESMA resiliência por-linha:
-    # resilient_upsert reenvia o lote linha-a-linha se um 4xx (FK/CHECK) derrubaria
-    # o lote inteiro — pula só a ruim, não a run. on_conflict EXPLÍCITO = a PK da tabela.
-
-    # 1. artist_snapshots — LINHA COMPARTILHADA com o collector (popularity/follower).
-    # Mandamos só {monthly_listeners, world_rank}: o merge-duplicates do PostgREST
-    # só faz SET nas COLUNAS PRESENTES no payload, então não tocamos o que o
-    # collector gravou. NUNCA incluir popularity/follower aqui (nem como None).
-    if artist_snap_updates:
-        console.print(f"  Enviando [cyan]{len(artist_snap_updates)}[/] upserts → spotify_artist_snapshots")
-        res = await resilient_upsert(
-            sb, "spotify_artist_snapshots", artist_snap_updates,
-            on_conflict="spotify_artist_id,date", batch_size=UPSERT_BATCH_SIZE,
-        )
-        stats.artist_snapshot_updates = res.written
-        stats.rows_skipped_bad += res.skipped
-
-    # 2. top_cities e discovered_on — NÃO deletamos nada aqui.
-    # WHY (contrato rule [8]): essas tabelas são geridas pelo SERVIDOR — discovered_on
-    # é staging de um merge SCD-2 (15:30 UTC) e top_cities é podada (latest-only,
-    # 16:00 UTC). O DELETE-then-INSERT que havia aqui era desnecessário e arriscado:
-    #   - desnecessário: numa data nova não há linha anterior — o UPSERT por PK basta;
-    #   - arriscado: a única coisa que ele "resolvia" era a re-run no mesmo dia, e isso
-    #     a trava de instância única (singleton_lock) já elimina. Em troca, apagava
-    #     também a linha de artistas cuja coleta FALHOU na run (perda transitória).
-    # Cross-check no banco do Miner (20/jun): NÃO era corrupção permanente — o merge
-    # fecha vigência por EXISTS (presença), não por ausência, e top_cities fica stale
-    # no máx 1 dia. Removido mesmo assim: risco sem ganho. Quem não foi coletado
-    # simplesmente não recebe linha; a poda/merge é 100% do servidor.
-    if top_cities_rows:
-        console.print(f"  Enviando [cyan]{len(top_cities_rows)}[/] linhas → spotify_artist_top_cities_snapshots")
-        res = await resilient_upsert(
-            sb, "spotify_artist_top_cities_snapshots", top_cities_rows,
-            on_conflict="spotify_artist_id,date,rank", batch_size=UPSERT_BATCH_SIZE,
-        )
-        stats.top_cities_rows = res.written
-        stats.rows_skipped_bad += res.skipped
-
-    if discovered_on_rows:
-        console.print(f"  Enviando [cyan]{len(discovered_on_rows)}[/] linhas → spotify_artist_discovered_on_snapshots")
-        res = await resilient_upsert(
-            sb, "spotify_artist_discovered_on_snapshots", discovered_on_rows,
-            on_conflict="spotify_artist_id,date,spotify_playlist_id", batch_size=UPSERT_BATCH_SIZE,
-        )
-        stats.discovered_on_rows = res.written
-        stats.rows_skipped_bad += res.skipped
 
 
 # ============================================================
@@ -609,9 +556,26 @@ async def main_async(args) -> int:
             flush_at=FLUSH_AT, batch_size=UPSERT_BATCH_SIZE,
             dedupe=dedupe_track_snapshots,
         )
-        artist_snap_updates: list[dict] = []
-        top_cities_rows: list[dict] = []
-        discovered_on_rows: list[dict] = []
+        # Fase de artista TAMBÉM incremental (2ª bomba de RAM: ~1,58M linhas de
+        # discovered + 310k top_cities acumulavam até o fim → OOM no cap de 3g).
+        # NÃO deletamos nada nessas tabelas (geridas pelo servidor: merge SCD-2 15:30 /
+        # poda 16:00 UTC) — o UPSERT por PK basta. artist_snapshots é LINHA COMPARTILHADA
+        # com o collector: só monthly_listeners/world_rank (merge-duplicates não toca o resto).
+        artist_writer = BufferedUpserter(
+            sb, "spotify_artist_snapshots",
+            on_conflict="spotify_artist_id,date",
+            flush_at=FLUSH_AT, batch_size=UPSERT_BATCH_SIZE,
+        )
+        top_cities_writer = BufferedUpserter(
+            sb, "spotify_artist_top_cities_snapshots",
+            on_conflict="spotify_artist_id,date,rank",
+            flush_at=FLUSH_AT, batch_size=UPSERT_BATCH_SIZE,
+        )
+        discovered_writer = BufferedUpserter(
+            sb, "spotify_artist_discovered_on_snapshots",
+            on_conflict="spotify_artist_id,date,spotify_playlist_id",
+            flush_at=FLUSH_AT, batch_size=UPSERT_BATCH_SIZE,
+        )
 
         limits = httpx.Limits(max_connections=50, max_keepalive_connections=25)
         async with httpx.AsyncClient(
@@ -643,27 +607,32 @@ async def main_async(args) -> int:
             artist_tasks = [
                 asyncio.create_task(artist_worker(
                     i, artist_queue, client, holder, stats,
-                    artist_snap_updates, top_cities_rows, discovered_on_rows,
+                    artist_writer, top_cities_writer, discovered_writer,
                     snapshot_date_iso,
                 ))
                 for i in range(args.workers)
             ]
             await asyncio.gather(*artist_tasks, return_exceptions=True)
+            await artist_writer.flush()
+            await top_cities_writer.flush()
+            await discovered_writer.flush()
+            stats.artist_snapshot_updates = artist_writer.written
+            stats.top_cities_rows = top_cities_writer.written
+            stats.discovered_on_rows = discovered_writer.written
+            _bad = artist_writer.skipped + top_cities_writer.skipped + discovered_writer.skipped
+            stats.rows_skipped_bad += _bad
             console.print(
                 f"  artists OK=[green]{stats.artists_ok}[/] FAIL=[red]{stats.artists_failed}[/] "
                 f"discovered_on OK=[green]{stats.discovered_on_ok}[/] FAIL=[red]{stats.discovered_on_failed}[/]  "
-                f"top_cities=[cyan]{len(top_cities_rows)}[/] discovered_on_rows=[cyan]{len(discovered_on_rows)}[/]"
+                f"artist_snap=[cyan]{artist_writer.written}[/] top_cities=[cyan]{top_cities_writer.written}[/] discovered=[cyan]{discovered_writer.written}[/]"
+                + (f" [red]bad={_bad}[/]" if _bad else "")
             )
 
         auth.close()
         http_sync.close()
 
-        # ---- 5. Flush
-        console.print("\n[bold]5. Flushing para Supabase...[/]")
-        await flush_to_supabase(
-            sb, stats,
-            artist_snap_updates, top_cities_rows, discovered_on_rows,
-        )
+        # ---- 5. Flush: nada a fazer aqui — track E artista já foram gravados
+        # INCREMENTALMENTE durante as fases (BufferedUpserter), RAM sempre baixa.
 
     stats.end_ts = time.monotonic()
 
