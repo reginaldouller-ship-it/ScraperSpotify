@@ -201,8 +201,10 @@ regras (detalhe e justificativa em **§10.5** de
   (O código tinha um DELETE-then-INSERT; **removido 20/jun** — UPSERT por PK numa data nova basta.)
 - **playcount por `spotify_id`**, nunca dedupe por ISRC (o Miner resolve ISRC na camada canônica).
 - `sync_date` = data **UTC** única no início da run, carimba tudo.
-- ⚠️ **Timing:** nossa janela começa 12:00 UTC, mas o merge de `discovered_on` é 15:30 UTC → o ideal é
-  coletar discovered_on nas primeiras ~3,5h pra entrar no merge do dia (senão atrasa 1 dia).
+- ✅ **Timing do `discovered_on` (resolvido — PR #157, merge "dias fechados"):** o merge do Miner consolida
+  **só `date < CURRENT_DATE`**, então o `discovered_on` de hoje entra **sempre em D+1, independentemente da
+  hora** da coleta. A nota antiga ("coletar nas primeiras ~3,5h, antes das 15:30 UTC") está **OBSOLETA** — o
+  planner (SS-6) NÃO precisa priorizar discovered_on de manhã. Confirmado contra o `pg_cron` vivo (20/jun).
 
 ## Decisões arquiteturais
 
@@ -236,7 +238,7 @@ do collector, não deste sync.
 2. **SHA-256 dos persisted queries** rotacionam → `discover_hashes.py --write` redescobre.
 3. **`statement_timeout` = 8s** → qualquer query que cresça com a tabela pode estourar. Sempre keyset/
    triggers eficientes.
-4. **`track_snapshots` (~25M) sem índice em `date` e não particionada** → operação "só por date" é scan
+4. **`track_snapshots` (~33,7M) sem índice em `date` e não particionada** → operação "só por date" é scan
    gigante. **Verificar progresso por `spotify_tracks.latest_playcount_date` (proxy), nunca `count` por
    date em `track_snapshots`.** Particionamento (Timescale) é trabalho futuro do lado Miner.
 5. **Coolify corta a visibilidade da run aos 60 min** (`dynamic_timeout=3600`) e mostra "Success" — mas

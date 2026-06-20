@@ -128,7 +128,7 @@ python -m scripts.sync_from_supabase --snapshot-date 2026-06-20   # força uma d
 ssh miner-vps "docker exec -i supabase-db-bax8nu79nywtkqoxyvb4lhtu psql -U postgres -d postgres"
 ```
 
-> `spotify_track_snapshots` (~25M linhas) não tem índice em `date` nem partição → contar "só por date" faz um scan gigante. Para acompanhar progresso, use `spotify_tracks.latest_playcount_date` como proxy — nunca um `count` em `track_snapshots` filtrado por `date`.
+> `spotify_track_snapshots` (~33,7M linhas) não tem índice em `date` nem partição → contar "só por date" faz um scan gigante. Para acompanhar progresso, use `spotify_tracks.latest_playcount_date` como proxy (seq scan em ~1,08M tracks, ~1-2s — bem mais leve) — nunca um `count` em `track_snapshots` filtrado por `date`.
 
 ---
 

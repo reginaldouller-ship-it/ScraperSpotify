@@ -76,7 +76,7 @@
 | Confiar no status "Success" do Coolify em run longa | `dynamic_timeout`=3600 (60 min) do servidor corta o RASTREAMENTO (não o processo) → "Success" falso aos 60 min | Verificar pelo BANCO (contar snapshots por `date` no self-host) |
 | `4xx` (FK 23503/CHECK) num lote de 500 derruba a run | 1 linha ruim aborta 500 boas | `resilient_upsert` isola linha-a-linha |
 | DELETE próprio em top_cities/discovered | São geridas pelo servidor (merge 15:30 / poda 16:00 UTC) — apagar corrompe ou é desnecessário | Só UPSERT por PK; sem DELETE |
-| `count`/scan "só por date" em `spotify_track_snapshots` (~25M, sem índice de date) | Seq scan gigante | Usar `spotify_tracks.latest_playcount_date` como proxy; ou PK |
+| `count`/scan "só por date" em `spotify_track_snapshots` (~33,7M, sem índice de date) | Seq scan gigante | Usar `spotify_tracks.latest_playcount_date` como proxy; ou PK |
 
 ## Como debugar problemas comuns
 

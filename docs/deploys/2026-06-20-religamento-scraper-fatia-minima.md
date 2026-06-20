@@ -155,5 +155,5 @@ Se a próxima run do cron quebrar ou o comportamento regredir:
 ## 7. Gotchas conhecidos (para o RUNBOOK)
 
 - **Coolify `dynamic_timeout=3600` mente sobre runs longas:** corta o rastreamento aos 60 min e mostra "Success", mas o processo segue rodando (órfão). **NÃO confiar no status do Coolify para runs longas** — verificar pelo BANCO (contar snapshots por `date` no self-host).
-- **`track_snapshots` (~25M) não tem índice em `date` nem partição:** qualquer operação "só por date" vira scan gigante. Para checar progresso, usar `spotify_tracks.latest_playcount_date` (proxy), **nunca** `COUNT` em `track_snapshots` por `date`.
+- **`track_snapshots` (~33,7M) não tem índice em `date` nem partição:** qualquer operação "só por date" vira scan gigante. Para checar progresso, usar `spotify_tracks.latest_playcount_date` (proxy), **nunca** `COUNT` em `track_snapshots` por `date`.
 - **Atalhos de erro:** `57014` = query estourou os 8 s do `statement_timeout` (olhar índice/plano). `PGRST103` = offset > total (usar keyset). `HashOutdatedError` = rodar `scripts/discover_hashes.py`. **Snapshots/dia caindo** = run morrendo antes do fim (era a 2ª bomba de RAM).

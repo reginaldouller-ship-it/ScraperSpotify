@@ -110,9 +110,9 @@ O log estruturado de cada run também fica em `data/sync_runs/<timestamp>.json` 
 
 ## Verificar progresso sem scan gigante
 
-> **⚠️ NUNCA rode `COUNT(*) ... WHERE date = ...` em `spotify_track_snapshots` para acompanhar progresso ao vivo.** Essa tabela tem **~25 milhões de linhas**, **sem índice em `date` e sem partição** — um filtro "só por date" vira um **scan da tabela inteira** (lento e pesado). Use o count por date só na verificação final pós-run, com paciência; para progresso **em andamento**, use os proxies abaixo.
+> **⚠️ NUNCA rode `COUNT(*) ... WHERE date = ...` em `spotify_track_snapshots` para acompanhar progresso ao vivo.** Essa tabela tem **~33,7 milhões de linhas**, **sem índice em `date` e sem partição** — um filtro "só por date" vira um **scan da tabela inteira** (lento e pesado). Use o count por date só na verificação final pós-run, com paciência; para progresso **em andamento**, use os proxies abaixo.
 
-**Proxy do progresso de tracks** — a coluna `spotify_tracks.latest_playcount_date` (mantida por trigger do Miner) avança conforme o sync grava playcounts. Contar quantas tracks já têm a data de hoje é barato (índice em `spotify_tracks`):
+**Proxy do progresso de tracks** — a coluna `spotify_tracks.latest_playcount_date` (mantida por trigger do Miner) avança conforme o sync grava playcounts. Contar quantas tracks já têm a data de hoje é **aceitável**: é um seq scan em ~1,08M linhas de `spotify_tracks` (a coluna **NÃO** tem índice), ~1-2s — bem mais leve que o scan de ~33,7M do `track_snapshots`:
 
 ```sql
 SELECT COUNT(*) AS tracks_atualizadas_hoje

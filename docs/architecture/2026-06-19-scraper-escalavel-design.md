@@ -267,14 +267,14 @@ Apurado lendo migrations + código do collector + queries read-only no banco viv
 
 **Timing (crons vivos no self-host, confirmados 19/jun):**
 - `merge_discovered_on_runs` **15:30 UTC** · `prune_discovered_on_staging` 16:10 UTC · `prune_top_cities` 16:00 UTC · refresh de MVs 06/14/22 UTC.
-- ⚠️ Nossa janela começa **12:00 UTC** (09:00 BRT) → **coletar `discovered_on` nas primeiras ~3,5h (antes das 15:30 UTC)** pra entrar no merge do dia; senão atrasa 1 dia. Priorizar discovered_on cedo, OU pedir ao Miner pra mover o merge.
+- ✅ **(Resolvido — PR #157, merge "dias fechados"):** a nota antiga "coletar `discovered_on` antes das 15:30 UTC senão atrasa 1 dia" está **OBSOLETA**. O merge consolida só `date < CURRENT_DATE`, então o `discovered_on` de hoje entra **sempre em D+1, independentemente da hora** da coleta. O planner (SS-6) NÃO precisa priorizar discovered_on de manhã.
 
 **Carry-forward (write-on-change) — BLOQUEADO até o Miner corrigir 2 objetos:**
 - Quebram com dias faltando: `avg_daily_delta` (`LAG` em dias consecutivos) e `mv_genre_stats` (banda fixa ±3 dias). Degrada: `get_genre_growth_chart` (soma por dia).
 - Seguros (último-valor / delta gap-tolerante via `≤ now-N ORDER BY date DESC LIMIT 1`): a maioria, incl. `get_movement_feed`.
 - **Veredito:** manter **linha diária** pra playcount/monthly_listeners (já era a decisão). top_cities/discovered_on já colapsam no servidor (SCD-2 / latest-only) — esses PODEM ser menos-frequentes se precisar.
 
-**Particionamento:** nenhuma tabela de snapshot é particionada hoje; `track_snapshots` (~25M) **sem índice em `date`**. Plano = **Timescale na Fase 4 (lado Miner)**. A 7-8× é trabalho do Miner — coordenar.
+**Particionamento:** nenhuma tabela de snapshot é particionada hoje; `track_snapshots` (~33,7M, medido `reltuples` 20/jun) **sem índice em `date`**. Plano = **Timescale na Fase 4 (lado Miner)**. A 7-8× é trabalho do Miner — coordenar.
 
 ## 11. Plano de implementação (fases)
 
