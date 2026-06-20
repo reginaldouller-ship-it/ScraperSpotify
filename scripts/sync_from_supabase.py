@@ -33,6 +33,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import random
 import sys
 import time
@@ -52,6 +53,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from config import settings  # noqa: E402
 from src.auth import SpotifyAuth  # noqa: E402
 from src.supabase_client import SupabaseClient  # noqa: E402
+from src.sync_status import decide_run_status  # noqa: E402
+from src.singleton_lock import acquire as acquire_lock, release as release_lock  # noqa: E402
 
 console = Console()
 logging.basicConfig(
@@ -64,6 +67,10 @@ logger = logging.getLogger("sync_supabase")
 
 DEFAULT_WORKERS = 20
 UPSERT_BATCH_SIZE = 500
+
+# Trava de instância única (incidente 2026-06-19). Path no /tmp do container —
+# limpo no restart (e restart = nenhuma run ativa, então tudo bem).
+LOCK_PATH = os.getenv("SYNC_LOCK_PATH", "/tmp/sync_from_supabase.lock")
 
 
 # ============================================================
@@ -480,6 +487,47 @@ async def main_async(args) -> int:
     stats = SyncStats()
     stats.start_ts = time.monotonic()
 
+    # Wall-clock do INÍCIO. monotonic() é ótimo pra medir duração, mas não vira
+    # timestamp legível. Bug antigo: `started_at` no log gravava datetime.now()
+    # no FIM da run (~2h depois), fazendo parecer que o cron disparou atrasado.
+    start_wall = datetime.now()
+    runs_dir = Path("data") / "sync_runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    log_path = runs_dir / f"{start_wall.strftime('%Y%m%d_%H%M%S')}_{snapshot_date_iso}.json"
+
+    def _write_run_log(status: str, token_refreshes: int = 0) -> None:
+        """Grava o log estruturado da run no MESMO arquivo, no início (stub
+        'in_progress') e no fim (status final). WHY: antes o log só era escrito
+        no sucesso, depois do flush — runs mortas no timeout/interrompidas (ex:
+        2026-06-13) não geravam log NENHUM, justo o caso que mais precisa de
+        diagnóstico. O stub inicial garante ao menos o rastro de que começou."""
+        payload = {
+            "status": status,
+            "started_at": start_wall.isoformat(timespec="seconds"),
+            "finished_at": datetime.now().isoformat(timespec="seconds"),
+            "snapshot_date": snapshot_date_iso,
+            "workers": args.workers,
+            "limit": args.limit or None,
+            "duration_s": round(stats.duration_s, 2),
+            "albums": {"ok": stats.albums_ok, "failed": stats.albums_failed},
+            "artists": {"ok": stats.artists_ok, "failed": stats.artists_failed},
+            "discovered_on": {"ok": stats.discovered_on_ok, "failed": stats.discovered_on_failed},
+            "writes": {
+                "track_snapshots": stats.track_snapshots,
+                "tracks_skipped_not_in_db": stats.tracks_skipped_not_in_db,
+                "artist_snapshots": stats.artist_snapshot_updates,
+                "top_cities_rows": stats.top_cities_rows,
+                "discovered_on_rows": stats.discovered_on_rows,
+            },
+            "errors": stats.errors[:200],  # cap maior que antes (era 50)
+            "errors_count": len(stats.errors),
+            "token_refreshes": token_refreshes,
+        }
+        log_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Stub inicial — se a run morrer no meio (kill/timeout/redeploy), fica este rastro.
+    _write_run_log("in_progress")
+
     async with SupabaseClient() as sb:
         # ---- 1. Load IDs
         console.print("[bold]1. Carregando IDs do Supabase...[/]")
@@ -513,6 +561,7 @@ async def main_async(args) -> int:
                 f"[bold]{len(albums_set) + 2*len(artists_set)}[/] requests totais.\n"
                 f"Sem flush ao Supabase."
             )
+            _write_run_log("dry_run")
             return 0
 
         # ---- 2. Setup GraphQL async
@@ -607,34 +656,30 @@ async def main_async(args) -> int:
         for e in stats.errors[:10]:
             console.print(f"  [red]•[/] {e}")
 
-    # ---- 7. Log estruturado em arquivo (pra auditoria em runs unattended)
-    runs_dir = Path("data") / "sync_runs"
-    runs_dir.mkdir(parents=True, exist_ok=True)
-    log_path = runs_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{snapshot_date_iso}.json"
-    log_payload = {
-        "started_at": datetime.now().isoformat(timespec="seconds"),
-        "snapshot_date": snapshot_date_iso,
-        "workers": args.workers,
-        "limit": args.limit or None,
-        "duration_s": round(stats.duration_s, 2),
-        "albums": {"ok": stats.albums_ok, "failed": stats.albums_failed},
-        "artists": {"ok": stats.artists_ok, "failed": stats.artists_failed},
-        "discovered_on": {"ok": stats.discovered_on_ok, "failed": stats.discovered_on_failed},
-        "writes": {
-            "track_snapshots": stats.track_snapshots,
-            "tracks_skipped_not_in_db": stats.tracks_skipped_not_in_db,
-            "artist_snapshots": stats.artist_snapshot_updates,
-            "top_cities_rows": stats.top_cities_rows,
-            "discovered_on_rows": stats.discovered_on_rows,
-        },
-        "errors": stats.errors[:50],  # capa: no máx 50 erros pra não explodir o arquivo
-        "errors_count": len(stats.errors),
-        "token_refreshes": holder.refresh_count,
-    }
-    log_path.write_text(json.dumps(log_payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    console.print(f"\n[dim]Log: {log_path}[/]")
+    # ---- 7. Log estruturado final + decisão de status/exit-code
+    # WHY exit-code novo: antes era `0 se zero falhas senão 1`. Com ~450 mil
+    # itens, 1 blip de rede = exit 1 = "failed" no Coolify, mesmo gravando 99,9%.
+    # Agora só sai != 0 se a TAXA de falha passar de 1% (ver src/sync_status.py).
+    status, exit_code = decide_run_status(
+        stats.albums_ok, stats.albums_failed,
+        stats.artists_ok, stats.artists_failed,
+        stats.discovered_on_ok, stats.discovered_on_failed,
+    )
+    _write_run_log(status, token_refreshes=holder.refresh_count)
+    console.print(f"\n[dim]Log: {log_path}  (status={status}, exit={exit_code})[/]")
 
-    return 0 if (stats.albums_failed + stats.artists_failed) == 0 else 1
+    if status == "degraded":
+        console.print(
+            "[bold red]Run DEGRADED[/] — taxa de falha acima de 1%. "
+            "Exit 1: investigar (hash? rede? rate limit?)."
+        )
+    elif status == "partial":
+        console.print(
+            "[yellow]Run PARTIAL[/] — falhas pontuais (ruído transitório) abaixo "
+            "do limite. Exit 0: os dados do dia foram gravados."
+        )
+
+    return exit_code
 
 
 def parse_iso_date(s: str) -> date:
@@ -649,10 +694,25 @@ def main() -> int:
     p.add_argument("--snapshot-date", type=parse_iso_date, default=None,
                    help="ISO date (YYYY-MM-DD). Default: hoje")
     args = p.parse_args()
+
+    # Trava de instância única (incidente 2026-06-19): impede que uma 2ª run
+    # comece por cima de outra que ainda roda — era isso que empilhava processos
+    # órfãos e saturava a VPS de 1 vCPU. --dry-run não trava (é só leitura).
+    lock = None
+    if not args.dry_run:
+        lock = acquire_lock(LOCK_PATH)
+        if lock is None:
+            console.print(
+                f"[yellow]Outro sync já está em andamento (lock em {LOCK_PATH}). "
+                "Saindo sem empilhar.[/]"
+            )
+            return 0
     try:
         return asyncio.run(main_async(args))
     except KeyboardInterrupt:
         return 130
+    finally:
+        release_lock(lock)
 
 
 if __name__ == "__main__":
