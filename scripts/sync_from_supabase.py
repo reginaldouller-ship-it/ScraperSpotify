@@ -38,7 +38,7 @@ import random
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlencode
@@ -55,6 +55,7 @@ from src.auth import SpotifyAuth  # noqa: E402
 from src.supabase_client import SupabaseClient  # noqa: E402
 from src.sync_status import decide_run_status  # noqa: E402
 from src.singleton_lock import acquire as acquire_lock, release as release_lock  # noqa: E402
+from src.snapshot_dedup import dedupe_track_snapshots  # noqa: E402
 
 console = Console()
 logging.basicConfig(
@@ -366,12 +367,19 @@ async def artist_worker(
                 {"uri": f"spotify:artist:{artist_id}", "locale": "", "includePrerelease": True},
             )
             overview = parse_artist_overview(artist_id, ov_data)
-            artist_snap_updates.append({
-                "spotify_artist_id": artist_id,
-                "date": snapshot_date_iso,
-                "monthly_listeners": overview["monthly_listeners"],
-                "world_rank": overview["world_rank"],
-            })
+            # Só grava se houver ao menos um dado útil. Escrever {ml:None, wr:None}
+            # num merge-duplicates sobrescreveria valores bons numa re-run do mesmo
+            # dia (a linha é COMPARTILHADA com popularity/follower do collector — o
+            # contrato é explícito sobre não corromper essa linha).
+            ml = overview["monthly_listeners"]
+            wr = overview["world_rank"]
+            if ml is not None or wr is not None:
+                artist_snap_updates.append({
+                    "spotify_artist_id": artist_id,
+                    "date": snapshot_date_iso,
+                    "monthly_listeners": ml,
+                    "world_rank": wr,
+                })
             for rank, c in enumerate(overview["top_cities"], start=1):
                 if not c.get("city"):
                     continue
@@ -421,55 +429,58 @@ async def flush_to_supabase(
     artist_snap_updates: list[dict],
     top_cities_rows: list[dict],
     discovered_on_rows: list[dict],
-    snapshot_date_iso: str,
-    artist_ids_in_run: set[str],
 ) -> None:
-    # 1. track_snapshots — simples upsert
+    # on_conflict EXPLÍCITO em cada upsert (= a PK exata da tabela). Sem isso o
+    # PostgREST cai na PK por padrão e funciona, mas fica implícito: se alguém
+    # adicionar uma unique constraint no futuro, o alvo do merge poderia mudar
+    # silenciosamente. Explícito = blindado.
+
+    # 1. track_snapshots — dedup mantendo o MAIOR playcount por (track, date).
+    # WHY (contrato rule [4]): o guard que propaga latest_playcount é por DATA (<=),
+    # não por valor — gravar a duplicata MENOR rebaixaria o latest_playcount.
     if track_snap_rows:
-        # dedup por (spotify_track_id, date) mantendo última entrada
-        seen: dict[tuple[str, str], dict] = {}
-        for r in track_snap_rows:
-            seen[(r["spotify_track_id"], r["date"])] = r
-        deduped = list(seen.values())
+        deduped = dedupe_track_snapshots(track_snap_rows)
         console.print(f"  Enviando [cyan]{len(deduped)}[/] linhas → spotify_track_snapshots")
         stats.track_snapshots = await sb.upsert(
             "spotify_track_snapshots", deduped, batch_size=UPSERT_BATCH_SIZE,
+            on_conflict="spotify_track_id,date",
         )
 
-    # 2. artist_snapshots — aqui tem uma sutileza: a tabela já pode ter linha do dia
-    # com popularity/follower_count da API oficial. Fazer UPSERT com só
-    # monthly_listeners/world_rank pode sobrescrever colunas. Solução: merge-duplicates
-    # do PostgREST só substitui as COLUNAS PRESENTES no payload. Então funciona.
+    # 2. artist_snapshots — LINHA COMPARTILHADA com o collector (popularity/follower).
+    # Mandamos só {monthly_listeners, world_rank}: o merge-duplicates do PostgREST
+    # só faz SET nas COLUNAS PRESENTES no payload, então não tocamos o que o
+    # collector gravou. NUNCA incluir popularity/follower aqui (nem como None).
     if artist_snap_updates:
         console.print(f"  Enviando [cyan]{len(artist_snap_updates)}[/] upserts → spotify_artist_snapshots")
         stats.artist_snapshot_updates = await sb.upsert(
             "spotify_artist_snapshots", artist_snap_updates, batch_size=UPSERT_BATCH_SIZE,
+            on_conflict="spotify_artist_id,date",
         )
 
-    # 3. top_cities — deletar e reinserir (rank pode mudar de ordem)
-    # Só deletamos do snapshot de hoje dos artistas que rodaram nesta run.
-    if artist_ids_in_run:
-        # PostgREST IN filter precisa ser escapado como string CSV entre parens
-        # Em volumes grandes (> ~500 IDs), quebrar em chunks pra não estourar query string
-        artist_id_list = sorted(artist_ids_in_run)
-        chunk_size = 200
-        for i in range(0, len(artist_id_list), chunk_size):
-            chunk = artist_id_list[i : i + chunk_size]
-            in_clause = "(" + ",".join(f'"{aid}"' for aid in chunk) + ")"
-            where = f"spotify_artist_id=in.{in_clause}&date=eq.{snapshot_date_iso}"
-            await sb.delete_where("spotify_artist_top_cities_snapshots", where)
-            await sb.delete_where("spotify_artist_discovered_on_snapshots", where)
-
+    # 3. top_cities e discovered_on — NÃO deletamos nada aqui.
+    # WHY (contrato rule [8]): essas tabelas são geridas pelo SERVIDOR — discovered_on
+    # é staging de um merge SCD-2 (15:30 UTC) e top_cities é podada (latest-only,
+    # 16:00 UTC). O DELETE-then-INSERT que havia aqui era desnecessário e arriscado:
+    #   - desnecessário: numa data nova não há linha anterior — o UPSERT por PK basta;
+    #   - arriscado: a única coisa que ele "resolvia" era a re-run no mesmo dia, e isso
+    #     a trava de instância única (singleton_lock) já elimina. Em troca, apagava
+    #     também a linha de artistas cuja coleta FALHOU na run (perda transitória).
+    # Cross-check no banco do Miner (20/jun): NÃO era corrupção permanente — o merge
+    # fecha vigência por EXISTS (presença), não por ausência, e top_cities fica stale
+    # no máx 1 dia. Removido mesmo assim: risco sem ganho. Quem não foi coletado
+    # simplesmente não recebe linha; a poda/merge é 100% do servidor.
     if top_cities_rows:
         console.print(f"  Enviando [cyan]{len(top_cities_rows)}[/] linhas → spotify_artist_top_cities_snapshots")
         stats.top_cities_rows = await sb.upsert(
             "spotify_artist_top_cities_snapshots", top_cities_rows, batch_size=UPSERT_BATCH_SIZE,
+            on_conflict="spotify_artist_id,date,rank",
         )
 
     if discovered_on_rows:
         console.print(f"  Enviando [cyan]{len(discovered_on_rows)}[/] linhas → spotify_artist_discovered_on_snapshots")
         stats.discovered_on_rows = await sb.upsert(
             "spotify_artist_discovered_on_snapshots", discovered_on_rows, batch_size=UPSERT_BATCH_SIZE,
+            on_conflict="spotify_artist_id,date,spotify_playlist_id",
         )
 
 
@@ -479,7 +490,12 @@ async def flush_to_supabase(
 
 
 async def main_async(args) -> int:
-    snapshot_date = args.snapshot_date or date.today()
+    # Contrato (rule [5]): a `date` faz parte da PK das 4 tabelas e é a chave do
+    # dedup diário — DEVE ser a data UTC do dia da coleta. `date.today()` usava o
+    # fuso LOCAL do container: funciona de manhã (BRT == UTC), mas se a janela de
+    # coleta esticar pra noite (redesign quer até 23h BRT = já é o dia seguinte em
+    # UTC) o snapshot cairia na data errada vs. os crons de merge/poda do Miner.
+    snapshot_date = args.snapshot_date or datetime.now(timezone.utc).date()
     snapshot_date_iso = snapshot_date.isoformat()
     console.print(f"[bold cyan]Sync from Supabase[/]  snapshot_date=[yellow]{snapshot_date_iso}[/]")
     console.print(f"Workers: [yellow]{args.workers}[/]  Dry-run: [yellow]{args.dry_run}[/]  Limit: [yellow]{args.limit or 'sem'}[/]\n")
@@ -630,8 +646,6 @@ async def main_async(args) -> int:
         await flush_to_supabase(
             sb, stats,
             track_snap_rows, artist_snap_updates, top_cities_rows, discovered_on_rows,
-            snapshot_date_iso,
-            artists_set,
         )
 
     stats.end_ts = time.monotonic()
