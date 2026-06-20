@@ -6,6 +6,21 @@ Histórico de mudanças significativas. Formato: `## YYYY-MM-DD — Título da m
 
 ---
 
+## 2026-06-20 — Religamento seguro do scraper (pós-incidente VPS de 19/jun)
+
+Repensada a resiliência do sync diário e religada a coleta **sem repetir** a saturação da VPS de 1 vCPU. Pipeline **validado ponta a ponta** (4/4 tabelas cheias em 06-20: track 1.295.823, artist 61.592, top_cities 286.739, discovered 1.584.722; run ~50 min, sem OOM).
+
+**Commits:** `29f5f88`, `1861a5e`, `7d2e797`, `1933d7f`. Deploy-record: `docs/deploys/2026-06-20-religamento-scraper-fatia-minima.md`.
+
+- **Hardening (SS-3, `29f5f88`):** trava de instância única (`flock` — mata o empilhamento que saturou a VPS), exit-code por **TAXA** de falha (>1%) em vez de 1 erro isolado, log estruturado robusto (stub início/fim em `data/sync_runs/`).
+- **Conformidade de contrato (`1861a5e`):** `date` em **UTC** (1 `sync_date` no início), **remove o DELETE próprio** em top_cities/discovered (geridas pelo servidor: merge 15:30 / poda 16:00 UTC), `on_conflict` explícito = PK, dedup de track por **MAIOR** playcount, pula artist_snapshot vazio (protege a linha compartilhada).
+- **Caps de recurso + infra (`7d2e797`):** `cpus=0.7` + `mem_limit=3g` + `memswap_limit=3g` no `docker-compose.yml` (o Docker impõe no kernel → VPS não satura nem dá OOM no host), `TZ=UTC`, `SYNC_WORKERS` configurável por env.
+- **Flush incremental nas 2 fases (`1933d7f`):** as **2 "bombas de RAM"** (tracks ~3M linhas + artistas ~1,9M linhas, que acumulavam pra gravar no fim → OOM) viraram flush incremental via `BufferedUpserter`. A da fase de artista era a **causa das falhas de top_cities/discovered desde 06-14**.
+- **Resiliência de escrita:** `resilient_upsert` isola erro 4xx (FK 23503 / CHECK) **linha-a-linha** em vez de derrubar o lote inteiro.
+- **Velocidade:** `SYNC_WORKERS` 8→16 (scraper é **rede-bound**, CPU ~30% — confirmado por métrica da VPS) → run ~2x mais rápido.
+- **Alvo de escrita:** self-host `supabase.minermusic.com.br` (o cloud `suzcbyzidnzzahwrkveh` foi aposentado no cutover de 13/jun).
+- **Novos módulos:** `src/buffered_writer.py`, `src/snapshot_dedup.py`, `src/sync_status.py`, `src/singleton_lock.py` (+ testes em `tests/`).
+
 ## 2026-05-05 — Documentação inicial estruturada
 
 Adiciona estrutura de docs para facilitar manutenção e onboarding.
